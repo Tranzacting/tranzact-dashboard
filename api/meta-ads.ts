@@ -12,7 +12,7 @@ interface MetricRow {
 
 const FB_ADS_TOKEN = process.env.FB_ADS_TOKEN ?? "";
 const FB_ADS_ACCOUNT_ID = process.env.FB_ADS_ACCOUNT_ID ?? "";
-const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD ?? "";
+const DASHBOARD_PASSWORD = (process.env.DASHBOARD_PASSWORD ?? "").trim();
 
 function checkAuth(req: IncomingMessage, password: string): boolean {
   const auth = (req.headers.authorization as string) ?? "";

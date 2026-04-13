@@ -1,7 +1,7 @@
 import { IncomingMessage, ServerResponse } from "http";
 
 // Environment variables
-const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD ?? "";
+const DASHBOARD_PASSWORD = (process.env.DASHBOARD_PASSWORD ?? "").trim();
 const FB_ADS_TOKEN = process.env.FB_ADS_TOKEN ?? "";
 const FB_ADS_ACCOUNT_ID = process.env.FB_ADS_ACCOUNT_ID ?? "";
 const GA_DEV_TOKEN = process.env.GOOGLE_ADS_DEVELOPER_TOKEN ?? "";
