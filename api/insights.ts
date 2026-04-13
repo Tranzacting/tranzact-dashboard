@@ -2,7 +2,7 @@ import { VercelRequest, VercelResponse } from "@vercel/node";
 
 // Environment variables
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY ?? "";
-const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD ?? "";
+const DASHBOARD_PASSWORD = (process.env.DASHBOARD_PASSWORD ?? "").trim();
 const FB_ADS_TOKEN = process.env.FB_ADS_TOKEN ?? "";
 const FB_ADS_ACCOUNT_ID = process.env.FB_ADS_ACCOUNT_ID ?? "";
 const GA_DEV_TOKEN = process.env.GOOGLE_ADS_DEVELOPER_TOKEN ?? "";
