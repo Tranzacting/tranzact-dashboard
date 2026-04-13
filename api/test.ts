@@ -1,7 +1,7 @@
-import { VercelRequest, VercelResponse } from "@vercel/node";
+import { IncomingMessage, ServerResponse } from "http";
 
-export default async (req: VercelRequest, res: VercelResponse) => {
-  const auth = req.headers.authorization ?? "";
+export default async (req: IncomingMessage, res: ServerResponse) => {
+  const auth = (req.headers.authorization as string) ?? "";
   const token = auth.replace("Bearer ", "");
 
   let decoded = "";
@@ -13,12 +13,14 @@ export default async (req: VercelRequest, res: VercelResponse) => {
 
   const password = process.env.DASHBOARD_PASSWORD ?? "";
 
-  res.json({
+  res.setHeader("Content-Type", "application/json");
+  res.writeHead(200);
+  res.end(JSON.stringify({
     auth_header: auth,
     token: token,
     decoded: decoded,
     expected_password: password,
     match: decoded === password,
     all_headers: Object.keys(req.headers),
-  });
+  }));
 };
