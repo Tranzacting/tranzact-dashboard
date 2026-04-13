@@ -124,13 +124,32 @@ export default function MetaAdsTablePage({ token, onBack }: Props) {
     setLoading(true);
     setError(null);
     try {
+      const cacheKey = `meta-ads-table-${since}-${until}`;
+      const cached = localStorage.getItem(cacheKey);
+      const cacheAge = localStorage.getItem(`${cacheKey}-time`);
+      const now = Date.now();
+      const ONE_HOUR = 60 * 60 * 1000;
+
+      // Use cache if it exists and is less than 1 hour old
+      if (cached && cacheAge && now - parseInt(cacheAge) < ONE_HOUR) {
+        setData(JSON.parse(cached));
+        setLoading(false);
+        return;
+      }
+
       const params = new URLSearchParams({ since, until });
       const res = await fetch(`/api/meta-ads-table?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) throw new Error(`API error: ${res.status}`);
-      setData(await res.json());
+      const jsonData = await res.json();
+
+      // Cache the result
+      localStorage.setItem(cacheKey, JSON.stringify(jsonData));
+      localStorage.setItem(`${cacheKey}-time`, String(now));
+
+      setData(jsonData);
     } catch (err) {
       setError(String(err));
     } finally {
@@ -233,7 +252,35 @@ export default function MetaAdsTablePage({ token, onBack }: Props) {
         >
           {loading ? "Loading..." : "Apply"}
         </button>
+        <button
+          onClick={() => {
+            const cacheKey = `meta-ads-table-${since}-${until}`;
+            localStorage.removeItem(cacheKey);
+            localStorage.removeItem(`${cacheKey}-time`);
+            load();
+          }}
+          disabled={loading}
+          style={{
+            padding: "8px 16px",
+            background: "#999",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontSize: "14px",
+            opacity: loading ? 0.6 : 1,
+          }}
+        >
+          {loading ? "Loading..." : "Force Refresh"}
+        </button>
       </div>
+
+      {/* Cache indicator */}
+      {data && (
+        <div style={{ fontSize: "12px", color: "#999", marginBottom: "16px" }}>
+          💾 Data cached locally (refreshes automatically after 1 hour or use Force Refresh)
+        </div>
+      )}
 
       {/* Error state */}
       {error && (
