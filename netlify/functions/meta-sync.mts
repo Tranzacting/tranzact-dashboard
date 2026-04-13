@@ -111,5 +111,4 @@ export default async (): Promise<Response> => {
 
 export const config = {
   schedule: "0 2 * * *", // 2am UTC daily
-  path: "/api/meta-sync",
 };
