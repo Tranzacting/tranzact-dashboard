@@ -517,7 +517,7 @@ export default async (req: IncomingMessage & { query?: Record<string, any> }, re
       grandPaid
     );
 
-    const response = {
+    const response: any = {
       campaigns: Array.from(campaignMap.values()),
       grand_totals: grandTotals,
       meta: {
@@ -532,6 +532,10 @@ export default async (req: IncomingMessage & { query?: Record<string, any> }, re
         },
       },
     };
+
+    if (fbError) {
+      response.meta.facebook_error = fbError;
+    }
 
     res.writeHead(200);
     res.end(JSON.stringify(response));
