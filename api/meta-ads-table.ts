@@ -211,10 +211,11 @@ function buildHSMap(deals: HSDeal[]): Map<string, number> {
   return map;
 }
 
-export default async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
+export default async (req: IncomingMessage & { query?: Record<string, any> }, res: ServerResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Content-Type", "application/json");
 
   if (req.method === "OPTIONS") {
     res.writeHead(200);
@@ -223,7 +224,7 @@ export default async (req: IncomingMessage, res: ServerResponse): Promise<void> 
   }
 
   if (!checkAuth(req, DASHBOARD_PASSWORD)) {
-    res.writeHead(401, { "Content-Type": "application/json" });
+    res.writeHead(401);
     res.end(JSON.stringify({ error: "Unauthorized" }));
     return;
   }
@@ -519,11 +520,11 @@ export default async (req: IncomingMessage, res: ServerResponse): Promise<void> 
       },
     };
 
-    res.writeHead(200, { "Content-Type": "application/json" });
+    res.writeHead(200);
     res.end(JSON.stringify(response));
   } catch (err) {
     console.error("Meta ads table error:", err);
-    res.writeHead(500, { "Content-Type": "application/json" });
+    res.writeHead(500);
     res.end(JSON.stringify({ error: String(err) }));
   }
 };
