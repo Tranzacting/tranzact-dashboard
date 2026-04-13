@@ -183,7 +183,8 @@ async function fetchGoogleAdSpend(since: string, until: string): Promise<number>
       totalCost += parseInt(costMicros) / 1_000_000;
     }
     return totalCost;
-  } catch {
+  } catch (e) {
+    console.error("Google Ads error:", e);
     return 0;
   }
 }
