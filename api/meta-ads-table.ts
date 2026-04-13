@@ -166,8 +166,9 @@ function computeMetrics(
 async function fetchMetaAdInsights(
   since: string,
   until: string
-): Promise<FBAdRow[]> {
-  if (!FB_ADS_TOKEN || !FB_ADS_ACCOUNT_ID) return [];
+): Promise<{ rows: FBAdRow[]; error?: string }> {
+  if (!FB_ADS_TOKEN) return { rows: [], error: "FB_ADS_TOKEN not configured" };
+  if (!FB_ADS_ACCOUNT_ID) return { rows: [], error: "FB_ADS_ACCOUNT_ID not configured" };
 
   const accountId = FB_ADS_ACCOUNT_ID.replace("act_", "");
   const rows: FBAdRow[] = [];
@@ -180,14 +181,21 @@ async function fetchMetaAdInsights(
     while (url && pageCount < maxPages) {
       const res = await fetch(url);
       if (!res.ok) {
-        console.error(`FB API error: ${res.status}`);
-        break;
+        const errorText = await res.text();
+        console.error(`FB API error: ${res.status}`, errorText);
+        return { rows, error: `FB API error: ${res.status} - ${errorText.slice(0, 200)}` };
       }
 
       const data = (await res.json()) as {
         data?: FBAdRow[];
         paging?: { next?: string };
+        error?: { message?: string };
       };
+
+      if (data.error) {
+        console.error("Meta API error:", data.error);
+        return { rows, error: `Meta API error: ${data.error.message}` };
+      }
 
       if (data.data) rows.push(...data.data);
 
@@ -196,9 +204,10 @@ async function fetchMetaAdInsights(
     }
   } catch (e) {
     console.error("Meta API fetch error:", e);
+    return { rows, error: String(e) };
   }
 
-  return rows;
+  return { rows };
 }
 
 function buildHSMap(deals: HSDeal[]): Map<string, number> {
@@ -235,7 +244,11 @@ export default async (req: IncomingMessage & { query?: Record<string, any> }, re
 
   try {
     // Fetch Facebook ad-level insights
-    const fbRows = await fetchMetaAdInsights(since, until);
+    const { rows: fbRows, error: fbError } = await fetchMetaAdInsights(since, until);
+
+    if (fbError) {
+      console.warn("Facebook API issue:", fbError);
+    }
 
     // Fetch HubSpot deals (4 parallel queries)
     const sinceTs = String(new Date(since + "T00:00:00Z").getTime());
