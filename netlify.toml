@@ -1,0 +1,18 @@
+[build]
+  command = "cd dashboard && npm run build"
+  publish = "dashboard/dist"
+  functions = "netlify/functions"
+
+[dev]
+  command = "cd dashboard && vite"
+  port = 8888
+  targetPort = 5173
+  autoLaunch = false
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[functions]
+  node_bundler = "esbuild"
