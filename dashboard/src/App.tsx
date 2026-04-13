@@ -5,12 +5,13 @@ import ChatInterface from "./components/ChatInterface";
 import HomePage from "./components/HomePage";
 import InstantlyPage from "./components/InstantlyPage";
 import MetaAdsPage from "./components/MetaAdsPage";
+import MetaAdsTablePage from "./components/MetaAdsTablePage";
 import GoogleAdsPage from "./components/GoogleAdsPage";
 import CompleteFunnelPage from "./components/CompleteFunnelPage";
 import { VideoPreview } from "./pages/VideoPreview";
 import { Conversation } from "./types";
 
-type View = "home" | "chat" | "funnel" | "instantly" | "video" | "meta" | "google";
+type View = "home" | "chat" | "funnel" | "instantly" | "video" | "meta" | "meta-table" | "google";
 
 export default function App() {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem("dash_token"));
@@ -111,6 +112,7 @@ ${mockInsights.recommended_questions.map((q) => `• ${q}`).join("\n")}`;
           onOpenInstantly={() => setView("instantly")}
           onOpenVideo={() => setView("video")}
           onOpenMeta={() => setView("meta")}
+          onOpenMetaTable={() => setView("meta-table")}
           onOpenGoogle={() => setView("google")}
         />
       </div>
@@ -127,6 +129,10 @@ ${mockInsights.recommended_questions.map((q) => `• ${q}`).join("\n")}`;
 
   if (view === "meta") {
     return <MetaAdsPage token={token} onBack={() => setView("home")} />;
+  }
+
+  if (view === "meta-table") {
+    return <MetaAdsTablePage token={token} onBack={() => setView("home")} />;
   }
 
   if (view === "google") {

@@ -19,6 +19,7 @@ interface Props {
   onOpenInstantly: () => void;
   onOpenVideo?: () => void;
   onOpenMeta?: () => void;
+  onOpenMetaTable?: () => void;
   onOpenGoogle?: () => void;
 }
 
@@ -50,7 +51,7 @@ interface Insights {
   metrics: any;
 }
 
-export default function HomePage({ token, onOpenChat, onOpenFunnel, onOpenInstantly, onOpenVideo, onOpenMeta, onOpenGoogle }: Props) {
+export default function HomePage({ token, onOpenChat, onOpenFunnel, onOpenInstantly, onOpenVideo, onOpenMeta, onOpenMetaTable, onOpenGoogle }: Props) {
   const [scorecard, setScorecard] = useState<ScorecardData | null>(null);
   const [scorecardLoading, setScorecardLoading] = useState(true);
   const [scorecardError, setScorecardError] = useState(false);
@@ -282,7 +283,33 @@ export default function HomePage({ token, onOpenChat, onOpenFunnel, onOpenInstan
           </button>
         )}
 
-        {/* Card 7 — Google Ads */}
+        {/* Card 7 — Meta Ads Attribution */}
+        {onOpenMetaTable && (
+          <button
+            onClick={onOpenMetaTable}
+            className="glass-card rounded-2xl p-6 text-left group transition-all duration-200 focus:outline-none"
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(24,119,242,0.4)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(24,119,242,0.1)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.06)"; }}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "rgba(24,119,242,0.08)", border: "1px solid rgba(24,119,242,0.15)" }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" fill="#1877F2"/>
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h2 className="font-display text-lg font-semibold mb-1" style={{ color: "#0f172a" }}>Meta Ads Attribution</h2>
+                <p className="text-sm" style={{ color: "#64748b" }}>Campaign → Ad Set → Ad with HubSpot metrics</p>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: "#1877F2" }}>
+                <span>Explore</span>
+                <span>→</span>
+              </div>
+            </div>
+          </button>
+        )}
+
+        {/* Card 8 — Google Ads */}
         {onOpenGoogle && (
           <button
             onClick={onOpenGoogle}
