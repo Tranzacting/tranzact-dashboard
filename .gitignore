@@ -1,3 +1,12 @@
 # Local Netlify folder
 .netlify
 .vercel
+
+# Large asset directories
+Ads/
+Webinar/
+Hubspot/
+Audience/
+campaigns/
+node_modules/
+.DS_Store
