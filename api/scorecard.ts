@@ -4,11 +4,11 @@ import { IncomingMessage, ServerResponse } from "http";
 const DASHBOARD_PASSWORD = (process.env.DASHBOARD_PASSWORD ?? "").trim();
 const FB_ADS_TOKEN = process.env.FB_ADS_TOKEN ?? "";
 const FB_ADS_ACCOUNT_ID = process.env.FB_ADS_ACCOUNT_ID ?? "";
-const GA_DEV_TOKEN = process.env.GOOGLE_ADS_DEVELOPER_TOKEN ?? "";
-const GA_ACCOUNT_ID = (process.env.GOOGLE_ADS_ACCOUNT_ID ?? "").replace(/-/g, "");
-const GA_CLIENT_ID = process.env.GOOGLE_ADS_CLIENT_ID ?? "";
-const GA_CLIENT_SECRET = process.env.GOOGLE_ADS_CLIENT_SECRET ?? "";
-const GA_REFRESH_TOKEN = process.env.GOOGLE_ADS_REFRESH_TOKEN ?? "";
+const GA_DEV_TOKEN = (process.env.GOOGLE_ADS_DEVELOPER_TOKEN ?? "").trim();
+const GA_ACCOUNT_ID = (process.env.GOOGLE_ADS_ACCOUNT_ID ?? "").replace(/-/g, "").trim();
+const GA_CLIENT_ID = (process.env.GOOGLE_ADS_CLIENT_ID ?? "").trim();
+const GA_CLIENT_SECRET = (process.env.GOOGLE_ADS_CLIENT_SECRET ?? "").trim();
+const GA_REFRESH_TOKEN = (process.env.GOOGLE_ADS_REFRESH_TOKEN ?? "").trim();
 const HS_TOKEN = process.env.HUBSPOT_PRIVATE_APP_TOKEN ?? "";
 
 const corsHeaders = {
@@ -30,6 +30,11 @@ function checkAuth(req: IncomingMessage, password: string): boolean {
 }
 
 async function getGoogleAccessToken(): Promise<string> {
+  console.log("Getting Google access token...");
+  console.log("Client ID length:", GA_CLIENT_ID.length);
+  console.log("Client Secret length:", GA_CLIENT_SECRET.length);
+  console.log("Refresh Token length:", GA_REFRESH_TOKEN.length);
+
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -40,9 +45,17 @@ async function getGoogleAccessToken(): Promise<string> {
       refresh_token: GA_REFRESH_TOKEN,
     }),
   });
-  if (!res.ok) throw new Error(`OAuth failed: ${res.statusText}`);
-  const data = (await res.json()) as { access_token?: string };
-  if (!data.access_token) throw new Error("No access token");
+
+  const data = (await res.json()) as { access_token?: string; error?: string; error_description?: string };
+
+  if (!res.ok) {
+    const errorMsg = `OAuth failed: ${res.status} ${data.error} - ${data.error_description}`;
+    console.error(errorMsg);
+    throw new Error(errorMsg);
+  }
+
+  if (!data.access_token) throw new Error("No access token in response");
+  console.log("Successfully got access token");
   return data.access_token;
 }
 
