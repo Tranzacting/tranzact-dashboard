@@ -12,8 +12,8 @@ const GA_CLIENT_SECRET = process.env.GOOGLE_ADS_CLIENT_SECRET ?? "";
 const GA_REFRESH_TOKEN = process.env.GOOGLE_ADS_REFRESH_TOKEN ?? "";
 const HS_TOKEN = process.env.HUBSPOT_PRIVATE_APP_TOKEN ?? "";
 
-function checkAuth(req: VercelRequest, password: string): boolean {
-  const auth = req.headers.authorization ?? "";
+function checkAuth(req: IncomingMessage, password: string): boolean {
+  const auth = (req.headers.authorization as string) ?? "";
   const token = auth.replace("Bearer ", "");
   let decoded = "";
   try {
@@ -248,17 +248,22 @@ Be specific, mention actual metrics and percentages, keep each item under 100 ch
   }
 }
 
-export default async (req: VercelRequest, res: VercelResponse) => {
+export default async (req: IncomingMessage, res: ServerResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Content-Type", "application/json");
 
   if (req.method === "OPTIONS") {
-    return res.status(200).end();
+    res.writeHead(200);
+    res.end();
+    return;
   }
 
   if (!checkAuth(req, DASHBOARD_PASSWORD)) {
-    return res.status(401).json({ error: "Unauthorized" });
+    res.writeHead(401);
+    res.end(JSON.stringify({ error: "Unauthorized" }));
+    return;
   }
 
   try {
@@ -322,9 +327,11 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       generated_at: new Date().toISOString(),
     };
 
-    return res.status(200).json(response);
+    res.writeHead(200);
+    res.end(JSON.stringify(response));
   } catch (err) {
     console.error("Insights error:", err);
-    return res.status(500).json({ error: String(err) });
+    res.writeHead(500);
+    res.end(JSON.stringify({ error: String(err) }));
   }
 };

@@ -1,4 +1,4 @@
-import { VercelRequest, VercelResponse } from "@vercel/node";
+import { IncomingMessage, ServerResponse } from "http";
 
 // Environment variables
 const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD ?? "";
@@ -17,8 +17,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-function checkAuth(req: VercelRequest, password: string): boolean {
-  const auth = req.headers.authorization ?? "";
+function checkAuth(req: IncomingMessage, password: string): boolean {
+  const auth = (req.headers.authorization as string) ?? "";
   const token = auth.replace("Bearer ", "");
   let decoded = "";
   try {
@@ -188,18 +188,22 @@ async function fetchGoogleAdSpend(since: string, until: string): Promise<number>
   }
 }
 
-export default async (req: VercelRequest, res: VercelResponse) => {
+export default async (req: IncomingMessage, res: ServerResponse) => {
   // Set CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   if (req.method === "OPTIONS") {
-    return res.status(200).end();
+    res.writeHead(200);
+    res.end();
+    return;
   }
 
   if (!checkAuth(req, DASHBOARD_PASSWORD)) {
-    return res.status(401).json({ error: "Unauthorized" });
+    res.writeHead(401, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ error: "Unauthorized" }));
+    return;
   }
 
   try {
@@ -238,9 +242,11 @@ export default async (req: VercelRequest, res: VercelResponse) => {
       month: monthKey,
     };
 
-    return res.status(200).json(scorecard);
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(scorecard));
   } catch (err) {
     console.error("Scorecard error:", err);
-    return res.status(500).json({ error: String(err) });
+    res.writeHead(500, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ error: String(err) }));
   }
 };
