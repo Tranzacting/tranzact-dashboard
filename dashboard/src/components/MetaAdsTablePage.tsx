@@ -110,6 +110,8 @@ export default function MetaAdsTablePage({ token, onBack }: Props) {
   const today = new Date().toISOString().slice(0, 10);
   const yearStart = `${new Date().getFullYear()}-01-01`;
 
+  const [sincePicker, setSincePicker] = useState(yearStart);
+  const [untilPicker, setUntilPicker] = useState(today);
   const [since, setSince] = useState(yearStart);
   const [until, setUntil] = useState(today);
   const [data, setData] = useState<TableResponse | null>(null);
@@ -139,6 +141,11 @@ export default function MetaAdsTablePage({ token, onBack }: Props) {
   useEffect(() => {
     load();
   }, [load]);
+
+  const handleApply = () => {
+    setSince(sincePicker);
+    setUntil(untilPicker);
+  };
 
   const toggleCampaign = (id: string) => {
     const newSet = new Set(expandedCampaigns);
@@ -177,15 +184,15 @@ export default function MetaAdsTablePage({ token, onBack }: Props) {
       </div>
 
       {/* Date filters */}
-      <div style={{ display: "flex", gap: "16px", marginBottom: "24px", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "16px", marginBottom: "24px", flexWrap: "wrap", alignItems: "flex-end" }}>
         <div>
           <label style={{ fontSize: "12px", color: "#666", display: "block", marginBottom: "4px" }}>
             Since
           </label>
           <input
             type="date"
-            value={since}
-            onChange={(e) => setSince(e.target.value)}
+            value={sincePicker}
+            onChange={(e) => setSincePicker(e.target.value)}
             style={{
               padding: "8px 12px",
               border: "1px solid #e2e8f0",
@@ -200,8 +207,8 @@ export default function MetaAdsTablePage({ token, onBack }: Props) {
           </label>
           <input
             type="date"
-            value={until}
-            onChange={(e) => setUntil(e.target.value)}
+            value={untilPicker}
+            onChange={(e) => setUntilPicker(e.target.value)}
             style={{
               padding: "8px 12px",
               border: "1px solid #e2e8f0",
@@ -210,24 +217,22 @@ export default function MetaAdsTablePage({ token, onBack }: Props) {
             }}
           />
         </div>
-        <div style={{ display: "flex", alignItems: "flex-end" }}>
-          <button
-            onClick={load}
-            disabled={loading}
-            style={{
-              padding: "8px 16px",
-              background: "#667eea",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "14px",
-              opacity: loading ? 0.6 : 1,
-            }}
-          >
-            {loading ? "Loading..." : "Refresh"}
-          </button>
-        </div>
+        <button
+          onClick={handleApply}
+          disabled={loading}
+          style={{
+            padding: "8px 16px",
+            background: "#667eea",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontSize: "14px",
+            opacity: loading ? 0.6 : 1,
+          }}
+        >
+          {loading ? "Loading..." : "Apply"}
+        </button>
       </div>
 
       {/* Error state */}
