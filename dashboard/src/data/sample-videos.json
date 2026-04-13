@@ -1,0 +1,108 @@
+{
+  "videos": [
+    {
+      "id": "ad_exec_001",
+      "audience": "executives",
+      "campaign": "awareness",
+      "headline": "Real-Time Manufacturing Visibility",
+      "subheadline": "Monitor your entire operation in one dashboard",
+      "cta": "Schedule Demo",
+      "imageUrl": "assets/Image - Add team members.png"
+    },
+    {
+      "id": "ad_exec_002",
+      "audience": "executives",
+      "campaign": "conversion",
+      "headline": "Reduce Operational Costs by 40%",
+      "subheadline": "Proven results from 10,000+ manufacturers",
+      "cta": "View ROI Calculator",
+      "imageUrl": "assets/dashboard.png"
+    },
+    {
+      "id": "ad_owner_001",
+      "audience": "business-owners",
+      "campaign": "consideration",
+      "headline": "Manage Your Team Better",
+      "subheadline": "Smart tools for growing manufacturers",
+      "cta": "Learn More",
+      "features": [
+        {
+          "title": "Add Team Members",
+          "description": "Quickly invite and onboard your team"
+        },
+        {
+          "title": "Assign Roles",
+          "description": "Control permissions and access levels"
+        },
+        {
+          "title": "Track Progress",
+          "description": "Monitor team performance in real-time"
+        },
+        {
+          "title": "Collaborate",
+          "description": "Enable seamless workflow across departments"
+        }
+      ]
+    },
+    {
+      "id": "ad_youth_001",
+      "audience": "young-entrepreneurs",
+      "campaign": "viral",
+      "headline": "India's #1 Software for Manufacturers",
+      "subheadline": "Join 10,000+ entrepreneurs building the future",
+      "cta": "Start Free",
+      "imageUrl": "assets/Image - Add team members.png"
+    },
+    {
+      "id": "ad_tech_001",
+      "audience": "tech-savvy",
+      "campaign": "consideration",
+      "headline": "Advanced Analytics & Insights",
+      "subheadline": "AI-powered recommendations for your business",
+      "cta": "Explore",
+      "features": [
+        {
+          "title": "Real-Time Data",
+          "description": "Live metrics from your production floor"
+        },
+        {
+          "title": "AI Predictions",
+          "description": "Anticipate issues before they happen"
+        },
+        {
+          "title": "Custom Reports",
+          "description": "Build reports your way"
+        },
+        {
+          "title": "API Access",
+          "description": "Integrate with your existing tools"
+        }
+      ]
+    },
+    {
+      "id": "ad_general_001",
+      "audience": "general-public",
+      "campaign": "awareness",
+      "headline": "Manufacturing Made Easy",
+      "subheadline": "The simple way to run your business",
+      "cta": "Learn More"
+    },
+    {
+      "id": "ad_general_002",
+      "audience": "general-public",
+      "campaign": "awareness",
+      "headline": "Scale Faster, Stress Less",
+      "subheadline": "Tools built for manufacturers like you",
+      "cta": "Get Started"
+    },
+    {
+      "id": "ad_owner_002",
+      "audience": "business-owners",
+      "campaign": "conversion",
+      "headline": "Trusted by Indian Manufacturers",
+      "subheadline": "Used by companies from startups to enterprises",
+      "cta": "Start Free Trial",
+      "imageUrl": "assets/Image - Add team members.png"
+    }
+  ]
+}

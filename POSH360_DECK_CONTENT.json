@@ -1,0 +1,414 @@
+{
+  "deck": {
+    "title": "POSH360 Executive Sales Deck",
+    "format": "A4",
+    "orientation": "portrait",
+    "slides": [
+      {
+        "id": 1,
+        "title": "Title Slide",
+        "layout": "title",
+        "background": "#FFFFFF",
+        "elements": [
+          {
+            "type": "text",
+            "content": "Protect Your Business. Empower Your People.",
+            "style": {
+              "fontSize": 56,
+              "fontWeight": "bold",
+              "color": "#1B3A6B",
+              "alignment": "left",
+              "position": "top"
+            }
+          },
+          {
+            "type": "text",
+            "content": "Comprehensive & De-risked POSH Compliance by POSH360",
+            "style": {
+              "fontSize": 28,
+              "fontWeight": "regular",
+              "color": "#2C3E50",
+              "alignment": "left",
+              "position": "middle"
+            }
+          },
+          {
+            "type": "text",
+            "content": "A Proven Framework for Forward-Thinking Leaders",
+            "style": {
+              "fontSize": 14,
+              "fontWeight": "regular",
+              "color": "#2C3E50",
+              "alignment": "right",
+              "position": "bottom"
+            }
+          },
+          {
+            "type": "icon",
+            "name": "shield",
+            "color": "#1B3A6B",
+            "size": 100,
+            "position": "bottom-right"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "The Hidden Liability",
+        "layout": "cards",
+        "background": "#F5F5F5",
+        "elements": [
+          {
+            "type": "text",
+            "content": "⚠️ One Allegation Away From Crisis",
+            "style": {
+              "fontSize": 56,
+              "fontWeight": "bold",
+              "color": "#1B3A6B",
+              "alignment": "center",
+              "position": "top"
+            }
+          },
+          {
+            "type": "text",
+            "content": "Non-compliance isn't a policy gap—it's a legal minefield. Are you prepared for the fallout?",
+            "style": {
+              "fontSize": 18,
+              "fontWeight": "italic",
+              "color": "#E63946",
+              "alignment": "center"
+            }
+          },
+          {
+            "type": "card",
+            "title": "🚨 Immediate Financial Exposure",
+            "content": "₹50,000+ fines for first offense. Repeat violations? Penalties multiply exponentially.\nAverage cost to defend a single claim: ₹5-10 lakhs+",
+            "borderColor": "#E63946",
+            "backgroundColor": "#FFFFFF"
+          },
+          {
+            "type": "card",
+            "title": "⚠️ License Cancellation & Shutdown Risk",
+            "content": "One regulatory audit can lead to business license cancellation, registration revocation, and operational shutdown.\nYour customers won't wait—your contracts may be void.",
+            "borderColor": "#E63946",
+            "backgroundColor": "#FFFFFF"
+          },
+          {
+            "type": "card",
+            "title": "👤 Personal Criminal Liability for Directors",
+            "content": "You're personally liable. Prison time is possible. Directors can be prosecuted under IPC.\nInsurance won't cover willful non-compliance.",
+            "borderColor": "#E63946",
+            "backgroundColor": "#FFFFFF"
+          },
+          {
+            "type": "card",
+            "title": "💥 Irreparable Reputational Collapse",
+            "content": "A single allegation goes viral. Investors pull funding. Clients terminate contracts. Top talent flees.\nRecovery from a POSH scandal: 18-24 months minimum. Some never recover.",
+            "borderColor": "#E63946",
+            "backgroundColor": "#FFFFFF"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Why POSH Compliance Matters",
+        "layout": "three-columns",
+        "background": "#FFFFFF",
+        "elements": [
+          {
+            "type": "text",
+            "content": "Why POSH Compliance Matters",
+            "style": {
+              "fontSize": 48,
+              "fontWeight": "bold",
+              "color": "#1B3A6B"
+            }
+          },
+          {
+            "type": "text",
+            "content": "More than a legal mandate—it's a critical corporate safeguard",
+            "style": {
+              "fontSize": 18,
+              "fontWeight": "regular",
+              "color": "#2C3E50"
+            }
+          },
+          {
+            "type": "column",
+            "title": "Proactive Lawsuit Protection",
+            "icon": "shield",
+            "content": "A strong framework significantly mitigates the risk of costly, drawn-out litigation.\n• Documented processes\n• Trained personnel\n• Incident tracking",
+            "backgroundColor": "#E8EEF7"
+          },
+          {
+            "type": "column",
+            "title": "Investor & Partner Readiness",
+            "icon": "chart",
+            "content": "Institutional investors and clients now mandate strict ESG and POSH compliance during due diligence.\n• Compliance certifications\n• Audited processes\n• Risk mitigation proof",
+            "backgroundColor": "#E8EEF7"
+          },
+          {
+            "type": "column",
+            "title": "High-Performance Culture",
+            "icon": "people",
+            "content": "A demonstrably safe and respectful environment boosts employee retention, productivity, and brand reputation.\n• Better talent acquisition\n• Higher retention rates\n• Positive employer brand",
+            "backgroundColor": "#E8EEF7"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Why POSH360",
+        "layout": "list",
+        "background": "#FFFFFF",
+        "elements": [
+          {
+            "type": "text",
+            "content": "Why POSH360? The Smarter Way to Comply",
+            "style": {
+              "fontSize": 48,
+              "fontWeight": "bold",
+              "color": "#1B3A6B"
+            }
+          },
+          {
+            "type": "text",
+            "content": "We take the headache out of compliance so you can focus on growth",
+            "style": {
+              "fontSize": 18,
+              "fontWeight": "regular",
+              "color": "#2C3E50"
+            }
+          },
+          {
+            "type": "list-item",
+            "icon": "✅",
+            "title": "Complete Automation & Tracking",
+            "content": "Seamless, tech-enabled dashboard to monitor compliance status, complaints, and training completion in real-time."
+          },
+          {
+            "type": "list-item",
+            "icon": "✅",
+            "title": "Expert External Members",
+            "content": "Highly experienced legal professionals serve as your mandated independent IC (Internal Committee) member."
+          },
+          {
+            "type": "list-item",
+            "icon": "✅",
+            "title": "High-Impact Sensitization",
+            "content": "Engaging, scenario-based workshops tailored for employees, managers, and the IC (not boring seminars)."
+          },
+          {
+            "type": "list-item",
+            "icon": "✅",
+            "title": "End-to-End Management",
+            "content": "From drafting policies and forming the IC, to resolving complex complaints and filing mandatory annual returns—we handle it all."
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Trusted by 100+ Companies",
+        "layout": "social-proof",
+        "background": "#FFFFFF",
+        "elements": [
+          {
+            "type": "section",
+            "position": "left",
+            "backgroundColor": "#E8EEF7",
+            "content": [
+              {
+                "type": "text",
+                "content": "100+",
+                "style": {
+                  "fontSize": 120,
+                  "fontWeight": "bold",
+                  "color": "#D4AF37"
+                }
+              },
+              {
+                "type": "text",
+                "content": "Companies Across Sectors",
+                "style": {
+                  "fontSize": 18,
+                  "fontWeight": "bold",
+                  "color": "#1B3A6B"
+                }
+              },
+              {
+                "type": "text",
+                "content": "Tech • Finance • Retail • Manufacturing • Healthcare • Legal",
+                "style": {
+                  "fontSize": 12,
+                  "color": "#2C3E50"
+                }
+              }
+            ]
+          },
+          {
+            "type": "section",
+            "position": "right",
+            "content": [
+              {
+                "type": "testimonial",
+                "rating": 5,
+                "quote": "POSH360 transformed our compliance from a stressful annual chore into a seamless, automated process. Their team is exceptionally professional and discreet.",
+                "author": "CEO, Tech Startup"
+              },
+              {
+                "type": "testimonial",
+                "rating": 5,
+                "quote": "An indispensable partner for our growing organization. They helped us navigate complex inquiries with zero legal friction.",
+                "author": "HR Head, Financial Services"
+              },
+              {
+                "type": "stats",
+                "items": [
+                  {
+                    "icon": "🎯",
+                    "text": "4.8/5 Average Rating for training effectiveness & IC support"
+                  },
+                  {
+                    "icon": "✅",
+                    "text": "Zero Cases Escalated to district authority"
+                  },
+                  {
+                    "icon": "🏆",
+                    "text": "98% Compliance Rate among POSH360 clients"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "The Expert Team",
+        "layout": "team",
+        "background": "#F5F5F5",
+        "elements": [
+          {
+            "type": "text",
+            "content": "The Experts Protecting Your Business",
+            "style": {
+              "fontSize": 48,
+              "fontWeight": "bold",
+              "color": "#1B3A6B"
+            }
+          },
+          {
+            "type": "text",
+            "content": "Legal stalwarts, HR veterans, and compliance specialists dedicated to your success",
+            "style": {
+              "fontSize": 16,
+              "fontWeight": "regular",
+              "color": "#2C3E50"
+            }
+          },
+          {
+            "type": "team-member",
+            "icon": "⚖️",
+            "title": "Founder & Legal Lead",
+            "description": "[Founder Name], 15+ years in corporate law and workplace compliance",
+            "details": [
+              "Practicing advocate, labor law specialist",
+              "Board advisor to 3+ multinational companies"
+            ]
+          },
+          {
+            "type": "team-member",
+            "icon": "📋",
+            "title": "Legal Advisory Panel",
+            "description": "Comprised of practicing advocates with deep expertise in labor laws and POSH Act adjudication"
+          },
+          {
+            "type": "team-member",
+            "icon": "🎓",
+            "title": "Certified Trainers & Psychologists",
+            "description": "Specialized in workplace behavioral training and unbiased conflict resolution"
+          },
+          {
+            "type": "team-member",
+            "icon": "🤝",
+            "title": "Dedicated Support Team",
+            "description": "Available 24/7 for complaints, guidance, and compliance queries"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Call to Action",
+        "layout": "cta",
+        "background": "#FFFFFF",
+        "elements": [
+          {
+            "type": "text",
+            "content": "Secure Your Organization Today",
+            "style": {
+              "fontSize": 56,
+              "fontWeight": "bold",
+              "color": "#1B3A6B"
+            }
+          },
+          {
+            "type": "text",
+            "content": "Don't wait for a crisis to expose your vulnerability",
+            "style": {
+              "fontSize": 18,
+              "fontWeight": "bold",
+              "color": "#E63946"
+            }
+          },
+          {
+            "type": "step",
+            "number": 1,
+            "icon": "📞",
+            "title": "Schedule a 15-minute compliance audit call",
+            "details": "Estimated: 15 mins"
+          },
+          {
+            "type": "step",
+            "number": 2,
+            "icon": "📋",
+            "title": "Receive customized gap-analysis report",
+            "details": "Delivered: 48 hours"
+          },
+          {
+            "type": "step",
+            "number": 3,
+            "icon": "✅",
+            "title": "Onboard with POSH360 & achieve 100% compliance",
+            "details": "Timeline: 30 days"
+          },
+          {
+            "type": "contact",
+            "title": "Contact Information",
+            "items": [
+              {
+                "icon": "🌐",
+                "label": "Website",
+                "value": "posh360.in"
+              },
+              {
+                "icon": "📧",
+                "label": "Email",
+                "value": "sales@posh360.in"
+              },
+              {
+                "icon": "📱",
+                "label": "Phone",
+                "value": "[Your Phone]"
+              },
+              {
+                "icon": "💬",
+                "label": "WhatsApp",
+                "value": "[Your WhatsApp]"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

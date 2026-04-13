@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "canva": {
+      "command": "canva",
+      "args": ["mcp"]
+    }
+  }
+}
