@@ -1,0 +1,15 @@
+Ads/
+Audience/
+Hubspot/
+Webinar/
+campaigns/
+.git/
+node_modules/
+dashboard/node_modules/
+*.mp4
+*.mov
+.DS_Store
+cover.png
+build-canva-deck.js
+canva-automation.js
+.netlify/
