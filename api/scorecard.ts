@@ -179,17 +179,19 @@ async function fetchGoogleAdSpend(since: string, until: string): Promise<number>
     );
 
     console.log(`Google Ads API response: ${res.status}`);
+    const responseText = await res.text();
+    console.log(`Google Ads API response body: ${responseText}`);
+
     if (!res.ok) {
-      const error = await res.text();
-      console.error("Google Ads API error:", error);
+      console.error("Google Ads API error:", responseText);
       return 0;
     }
 
-    const data = (await res.json()) as {
+    const data = JSON.parse(responseText) as {
       results?: Array<{ metrics?: { costMicros?: string } }>;
     };
 
-    console.log(`Google Ads data:`, JSON.stringify(data).slice(0, 200));
+    console.log(`Google Ads data:`, JSON.stringify(data));
 
     let totalCost = 0;
     for (const row of data.results ?? []) {
