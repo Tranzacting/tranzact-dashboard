@@ -1,4 +1,4 @@
-import { VercelRequest, VercelResponse } from "@vercel/node";
+import { IncomingMessage, ServerResponse } from "http";
 
 // Environment variables
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY ?? "";
@@ -11,6 +11,7 @@ const GA_CLIENT_ID = process.env.GOOGLE_ADS_CLIENT_ID ?? "";
 const GA_CLIENT_SECRET = process.env.GOOGLE_ADS_CLIENT_SECRET ?? "";
 const GA_REFRESH_TOKEN = process.env.GOOGLE_ADS_REFRESH_TOKEN ?? "";
 const HS_TOKEN = process.env.HUBSPOT_PRIVATE_APP_TOKEN ?? "";
+const INSTANTLY_API_KEY = (process.env.INSTANTLY_API_KEY ?? "").trim();
 
 function checkAuth(req: IncomingMessage, password: string): boolean {
   const auth = (req.headers.authorization as string) ?? "";
@@ -192,6 +193,55 @@ async function fetchGASpend(since: string, until: string): Promise<number> {
   }
 }
 
+async function fetchInstantlyMetrics(
+  since: string,
+  until: string,
+  metric: "opened" | "replied"
+): Promise<number> {
+  if (!INSTANTLY_API_KEY) return 0;
+
+  try {
+    const res = await fetch("https://api.instantly.ai/api/v1/campaign/list", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${INSTANTLY_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) return 0;
+
+    interface InstantlyCampaign {
+      created_at?: string;
+      opened?: number;
+      replied?: number;
+    }
+
+    const data = (await res.json()) as { data?: InstantlyCampaign[] };
+
+    let total = 0;
+    const sinceDate = new Date(since);
+    const untilDate = new Date(until);
+
+    for (const campaign of data.data ?? []) {
+      if (!campaign.created_at) continue;
+      const createdDate = new Date(campaign.created_at);
+
+      if (createdDate >= sinceDate && createdDate <= untilDate) {
+        if (metric === "opened") {
+          total += campaign.opened ?? 0;
+        } else if (metric === "replied") {
+          total += campaign.replied ?? 0;
+        }
+      }
+    }
+
+    return total;
+  } catch {
+    return 0;
+  }
+}
+
 async function generateInsights(
   metrics: Record<string, { current: number; previous: number; delta_pct: number }>
 ): Promise<{
@@ -285,6 +335,10 @@ export default async (req: IncomingMessage, res: ServerResponse) => {
       currentGASpend,
       previousFBSpend,
       previousGASpend,
+      currentOpened,
+      currentReplied,
+      previousOpened,
+      previousReplied,
     ] = await Promise.all([
       fetchMQLs(currentWeekStart, currentWeekEnd),
       fetchDemos(currentWeekStart, currentWeekEnd),
@@ -294,6 +348,10 @@ export default async (req: IncomingMessage, res: ServerResponse) => {
       fetchGASpend(currentWeek.since, currentWeek.until),
       fetchFBSpend(previousWeek.since, previousWeek.until),
       fetchGASpend(previousWeek.since, previousWeek.until),
+      fetchInstantlyMetrics(currentWeek.since, currentWeek.until, "opened"),
+      fetchInstantlyMetrics(currentWeek.since, currentWeek.until, "replied"),
+      fetchInstantlyMetrics(previousWeek.since, previousWeek.until, "opened"),
+      fetchInstantlyMetrics(previousWeek.since, previousWeek.until, "replied"),
     ]);
 
     const currentSpend = currentFBSpend + currentGASpend;
@@ -314,6 +372,16 @@ export default async (req: IncomingMessage, res: ServerResponse) => {
         current: currentDemos,
         previous: previousDemos,
         delta_pct: calculateDeltaPct(currentDemos, previousDemos),
+      },
+      instantly_opened: {
+        current: currentOpened,
+        previous: previousOpened,
+        delta_pct: calculateDeltaPct(currentOpened, previousOpened),
+      },
+      instantly_replied: {
+        current: currentReplied,
+        previous: previousReplied,
+        delta_pct: calculateDeltaPct(currentReplied, previousReplied),
       },
     };
 
