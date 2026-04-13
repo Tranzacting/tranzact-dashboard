@@ -161,8 +161,9 @@ async function fetchGASpend(since: string, until: string): Promise<number> {
       query: `SELECT metrics.cost_micros FROM customer WHERE segments.date BETWEEN '${since}' AND '${until}'`,
     };
 
+    const formattedId = GA_ACCOUNT_ID.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
     const res = await fetch(
-      `https://googleads.googleapis.com/v19/customers/${GA_ACCOUNT_ID}/googleAds:search`,
+      `https://googleads.googleapis.com/v19/customers/${formattedId}/googleAds:search`,
       {
         method: "POST",
         headers: {
