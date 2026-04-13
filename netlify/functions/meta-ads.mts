@@ -49,12 +49,16 @@ async function fetchMetaInsights(since: string, until: string): Promise<MetricRo
           clicks: string;
         }>;
         paging?: { next?: string };
-        error?: { message: string };
+        error?: { message: string; code?: number; error_user_title?: string };
       };
 
       if (data.error) {
-        console.error("Meta API error:", data.error.message);
-        break;
+        const isAuthError = data.error.code === 190; // OAuthException
+        throw new Error(
+          isAuthError
+            ? `Facebook token expired or invalid (code ${data.error.code}). Regenerate System User token in Meta Business Manager.`
+            : `Meta API error: ${data.error.message}`
+        );
       }
 
       for (const r of data.data ?? []) {
@@ -279,9 +283,18 @@ export default async (req: Request): Promise<Response> => {
       }
     );
   } catch (err) {
-    console.error(err);
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500,
+    const errMsg = String(err);
+    console.error("Meta Ads error:", errMsg);
+
+    // Check if it's a token/auth error
+    const isTokenError = errMsg.includes("Facebook token") || errMsg.includes("code 190");
+    const status = isTokenError ? 401 : 500;
+
+    return new Response(JSON.stringify({
+      error: errMsg,
+      hint: isTokenError ? "Update FB_ADS_TOKEN in Netlify env with a never-expiring System User token from Meta Business Manager" : undefined
+    }), {
+      status,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
