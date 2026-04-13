@@ -1,5 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
-
 // Environment variables
 export const GA_DEV_TOKEN = process.env.GOOGLE_ADS_DEVELOPER_TOKEN ?? "";
 export const GA_ACCOUNT_ID = (process.env.GOOGLE_ADS_ACCOUNT_ID ?? "").replace(/-/g, "");
@@ -493,6 +491,7 @@ export async function generateInsights(
   if (!ANTHROPIC_API_KEY) return null;
 
   try {
+    const Anthropic = (await import("@anthropic-ai/sdk")).default;
     const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 
     const metricsStr = Object.entries(metrics)
