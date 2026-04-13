@@ -4,6 +4,8 @@ const FB_ADS_TOKEN = process.env.FB_ADS_TOKEN ?? "";
 const FB_ADS_ACCOUNT_ID = process.env.FB_ADS_ACCOUNT_ID ?? "";
 const HS_TOKEN = process.env.HUBSPOT_PRIVATE_APP_TOKEN ?? "";
 const DASHBOARD_PASSWORD = (process.env.DASHBOARD_PASSWORD ?? "").trim();
+const SUPABASE_URL = process.env.SUPABASE_URL ?? "";
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY ?? "";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -220,6 +222,66 @@ function buildHSMap(deals: HSDeal[]): Map<string, number> {
   return map;
 }
 
+async function saveToDatabase(
+  since: string,
+  until: string,
+  data: Record<string, any>
+): Promise<void> {
+  if (!SUPABASE_URL || !SUPABASE_KEY) return;
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/meta_ads_cache`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates",
+      },
+      body: JSON.stringify({
+        date_range: `${since}_${until}`,
+        since,
+        until,
+        data,
+        cached_at: new Date().toISOString(),
+      }),
+    });
+
+    if (!res.ok) {
+      console.error("Failed to save to database:", await res.text());
+    }
+  } catch (e) {
+    console.error("Database save error:", e);
+  }
+}
+
+async function getFromDatabase(
+  since: string,
+  until: string
+): Promise<Record<string, any> | null> {
+  if (!SUPABASE_URL || !SUPABASE_KEY) return null;
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/meta_ads_cache?date_range=eq.${since}_${until}`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+        },
+      }
+    );
+
+    if (!res.ok) return null;
+
+    const data = (await res.json()) as Array<{ data: Record<string, any> }>;
+    return data.length > 0 ? data[0].data : null;
+  } catch (e) {
+    console.error("Database fetch error:", e);
+    return null;
+  }
+}
+
 export default async (req: IncomingMessage & { query?: Record<string, any> }, res: ServerResponse) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -241,8 +303,20 @@ export default async (req: IncomingMessage & { query?: Record<string, any> }, re
   const url = new URL(req.url!, `http://${req.headers.host}`);
   const since = url.searchParams.get("since") ?? `${new Date().getFullYear()}-01-01`;
   const until = url.searchParams.get("until") ?? new Date().toISOString().slice(0, 10);
+  const forceRefresh = url.searchParams.get("force") === "true";
 
   try {
+    // Try to get from database first (unless force refresh is requested)
+    if (!forceRefresh) {
+      const cachedData = await getFromDatabase(since, until);
+      if (cachedData) {
+        res.writeHead(200);
+        res.end(JSON.stringify(cachedData));
+        return;
+      }
+    }
+
+    // If not in DB or force refresh, fetch from APIs
     // Fetch Facebook ad-level insights
     const { rows: fbRows, error: fbError } = await fetchMetaAdInsights(since, until);
 
@@ -524,6 +598,11 @@ export default async (req: IncomingMessage & { query?: Record<string, any> }, re
     if (fbError) {
       response.meta.facebook_error = fbError;
     }
+
+    // Save to database for future requests
+    saveToDatabase(since, until, response).catch((e) =>
+      console.error("Error saving to database:", e)
+    );
 
     res.writeHead(200);
     res.end(JSON.stringify(response));
