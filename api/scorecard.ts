@@ -155,7 +155,9 @@ async function fetchGoogleAdSpend(since: string, until: string): Promise<number>
   }
 
   try {
-    console.log(`Fetching Google Ads for customer ${GA_ACCOUNT_ID}, dates ${since} to ${until}`);
+    // Format customer ID with hyphens (Google Ads API requires format: 123-456-7890)
+    const formattedCustomerId = GA_ACCOUNT_ID.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+    console.log(`Fetching Google Ads for customer ${formattedCustomerId}, dates ${since} to ${until}`);
     const accessToken = await getGoogleAccessToken();
     console.log("Got access token");
 
@@ -164,7 +166,7 @@ async function fetchGoogleAdSpend(since: string, until: string): Promise<number>
     };
 
     const res = await fetch(
-      `https://googleads.googleapis.com/v19/customers/${GA_ACCOUNT_ID}/googleAds:search`,
+      `https://googleads.googleapis.com/v19/customers/${formattedCustomerId}/googleAds:search`,
       {
         method: "POST",
         headers: {
