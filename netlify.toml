@@ -16,3 +16,8 @@
 
 [functions]
   node_bundler = "esbuild"
+  external_node_modules = ["@anthropic-ai/sdk"]
+
+[build.environment]
+  NPM_FLAGS = "--legacy-peer-deps"
+  NODE_VERSION = "18"
