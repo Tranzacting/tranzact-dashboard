@@ -172,7 +172,7 @@ async function fetchMetaAdInsights(
 
   const accountId = FB_ADS_ACCOUNT_ID.replace("act_", "");
   const rows: FBAdRow[] = [];
-  let url: string | null = `https://graph.facebook.com/v19.0/act_${accountId}/insights?level=ad&time_increment=all&time_range[since]=${since}&time_range[until]=${until}&fields=campaign_id,campaign_name,adset_id,adset_name,ad_id,ad_name,spend,impressions,reach,inline_link_clicks,frequency,actions&limit=200&access_token=${FB_ADS_TOKEN}`;
+  let url: string | null = `https://graph.facebook.com/v19.0/act_${accountId}/insights?level=ad&time_increment=all_days&time_range[since]=${since}&time_range[until]=${until}&fields=campaign_id,campaign_name,adset_id,adset_name,ad_id,ad_name,spend,impressions,reach,inline_link_clicks,frequency,actions&limit=200&access_token=${FB_ADS_TOKEN}`;
 
   let pageCount = 0;
   const maxPages = 50; // Cap at 10k rows (50 * 200)
