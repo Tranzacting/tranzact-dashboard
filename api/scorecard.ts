@@ -149,10 +149,15 @@ async function fetchFacebookSpend(since: string, until: string): Promise<number>
 }
 
 async function fetchGoogleAdSpend(since: string, until: string): Promise<number> {
-  if (!GA_DEV_TOKEN || !GA_ACCOUNT_ID) return 0;
+  if (!GA_DEV_TOKEN || !GA_ACCOUNT_ID) {
+    console.log("Google Ads: Missing token or account ID");
+    return 0;
+  }
 
   try {
+    console.log(`Fetching Google Ads for customer ${GA_ACCOUNT_ID}, dates ${since} to ${until}`);
     const accessToken = await getGoogleAccessToken();
+    console.log("Got access token");
 
     const body = {
       query: `SELECT metrics.cost_micros FROM customer WHERE segments.date BETWEEN '${since}' AND '${until}'`,
@@ -171,17 +176,25 @@ async function fetchGoogleAdSpend(since: string, until: string): Promise<number>
       }
     );
 
-    if (!res.ok) return 0;
+    console.log(`Google Ads API response: ${res.status}`);
+    if (!res.ok) {
+      const error = await res.text();
+      console.error("Google Ads API error:", error);
+      return 0;
+    }
 
     const data = (await res.json()) as {
       results?: Array<{ metrics?: { costMicros?: string } }>;
     };
+
+    console.log(`Google Ads data:`, JSON.stringify(data).slice(0, 200));
 
     let totalCost = 0;
     for (const row of data.results ?? []) {
       const costMicros = row.metrics?.costMicros ?? "0";
       totalCost += parseInt(costMicros) / 1_000_000;
     }
+    console.log(`Google Ads total cost: ${totalCost}`);
     return totalCost;
   } catch (e) {
     console.error("Google Ads error:", e);
