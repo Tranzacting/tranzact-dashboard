@@ -265,19 +265,7 @@ export default async (req: IncomingMessage & { query?: Record<string, any> }, re
         "last_crm_lead_datetime",
         sinceTs,
         untilTs,
-        [
-          fbFilter,
-          {
-            propertyName: "form_is_manufacturing",
-            operator: "EQ" as const,
-            value: "Yes",
-          },
-          {
-            propertyName: "form_designation",
-            operator: "IN" as const,
-            values: ["Owner", "HOD"],
-          },
-        ],
+        [fbFilter],
         ["ads_name"]
       ),
       fetchHSDeals(
