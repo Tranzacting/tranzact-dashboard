@@ -28,24 +28,32 @@ export default async (req: IncomingMessage, res: ServerResponse) => {
     return;
   }
 
+  const steps: any = {
+    env_vars_ok: false,
+    oauth_ok: false,
+    api_called: false,
+  };
+
   try {
     // Step 1: Check env vars
     const envVarsOk = GA_DEV_TOKEN && GA_ACCOUNT_ID && GA_CLIENT_ID && GA_CLIENT_SECRET && GA_REFRESH_TOKEN;
+    steps.env_vars_ok = envVarsOk;
+    steps.env_details = {
+      dev_token_len: GA_DEV_TOKEN.length,
+      account_id: GA_ACCOUNT_ID,
+      client_id_len: GA_CLIENT_ID.length,
+      client_secret_len: GA_CLIENT_SECRET.length,
+      refresh_token_len: GA_REFRESH_TOKEN.length,
+    };
 
     if (!envVarsOk) {
       res.writeHead(400);
-      res.end(JSON.stringify({
-        error: "Missing env vars",
-        has_dev_token: !!GA_DEV_TOKEN,
-        has_account_id: !!GA_ACCOUNT_ID,
-        has_client_id: !!GA_CLIENT_ID,
-        has_client_secret: !!GA_CLIENT_SECRET,
-        has_refresh_token: !!GA_REFRESH_TOKEN,
-      }));
+      res.end(JSON.stringify({ error: "Missing env vars", steps }));
       return;
     }
 
     // Step 2: Get OAuth token
+    steps.oauth_attempt = true;
     const oauthRes = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -57,33 +65,42 @@ export default async (req: IncomingMessage, res: ServerResponse) => {
       }),
     });
 
-    const oauthData = (await oauthRes.text());
+    steps.oauth_status = oauthRes.status;
+    const oauthData = await oauthRes.text();
+    steps.oauth_response_len = oauthData.length;
 
     if (!oauthRes.ok) {
       res.writeHead(400);
       res.end(JSON.stringify({
         error: "OAuth failed",
-        oauth_status: oauthRes.status,
-        oauth_response: oauthData,
+        steps,
+        oauth_body: oauthData.slice(0, 500),
       }));
       return;
     }
 
+    steps.oauth_ok = true;
     const tokenData = JSON.parse(oauthData) as { access_token?: string };
 
     if (!tokenData.access_token) {
       res.writeHead(400);
       res.end(JSON.stringify({
-        error: "No access token in response",
-        oauth_response: oauthData,
+        error: "No access token",
+        steps,
       }));
       return;
     }
+
+    steps.access_token_len = tokenData.access_token.length;
 
     // Step 3: Test Google Ads API
     const formattedId = GA_ACCOUNT_ID.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3");
     const since = "2026-04-01";
     const until = "2026-04-30";
+
+    steps.api_attempt = true;
+    steps.formatted_id = formattedId;
+    steps.query = `SELECT metrics.cost_micros FROM customer WHERE segments.date BETWEEN '${since}' AND '${until}'`;
 
     const apiRes = await fetch(
       `https://googleads.googleapis.com/v19/customers/${formattedId}/googleAds:search`,
@@ -95,22 +112,23 @@ export default async (req: IncomingMessage, res: ServerResponse) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          query: `SELECT metrics.cost_micros FROM customer WHERE segments.date BETWEEN '${since}' AND '${until}'`,
+          query: steps.query,
         }),
       }
     );
 
+    steps.api_status = apiRes.status;
     const apiData = await apiRes.text();
+    steps.api_response_len = apiData.length;
 
     res.writeHead(200);
     res.end(JSON.stringify({
-      success: true,
-      oauth_ok: true,
-      api_status: apiRes.status,
-      api_response: apiData ? JSON.parse(apiData) : null,
+      success: apiRes.ok,
+      steps,
+      api_response: apiData.length > 0 ? JSON.parse(apiData) : null,
     }));
   } catch (err) {
     res.writeHead(500);
-    res.end(JSON.stringify({ error: String(err) }));
+    res.end(JSON.stringify({ error: String(err), steps }));
   }
 };
