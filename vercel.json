@@ -1,4 +1,6 @@
 {
-  "buildCommand": "cd dashboard && npm install && npm run build && mkdir -p dist/api && cp -r api/*.js dist/api/",
-  "outputDirectory": "dashboard/dist"
+  "buildCommand": "cd dashboard && npm install && npm run build",
+  "outputDirectory": "dashboard/dist",
+  "cleanUrls": true,
+  "trailingSlash": false
 }
