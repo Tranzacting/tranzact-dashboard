@@ -9,7 +9,7 @@ const corsHeaders = {
 };
 
 function checkAuth(req, password) {
-  const auth = req.headers.get("Authorization") ?? "";
+  const auth = (req.headers.get && req.headers.get("Authorization")) || req.headers.authorization || "";
   const token = auth.replace("Bearer ", "");
   let decoded = "";
   try {
@@ -156,20 +156,24 @@ function computeMetrics(data) {
   };
 }
 
-module.exports = async (req) => {
+module.exports = async (req, res) => {
+  // Set CORS headers
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    res.status(200).end();
+    return;
   }
 
   if (!checkAuth(req, DASHBOARD_PASSWORD)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    res.status(401).json({ error: "Unauthorized" });
+    return;
   }
 
   try {
-    const url = new URL(req.url);
+    const url = new URL(req.url, `https://${req.headers.host}`);
     const cadence = url.searchParams.get("cadence") || "monthly";
     const since = url.searchParams.get("since") || new Date().getFullYear() + "-01-01";
     const until = url.searchParams.get("until") || new Date().toISOString().slice(0, 10);
@@ -227,23 +231,15 @@ module.exports = async (req) => {
     totalMetrics.cpm =
       totalMetrics.impressions > 0 ? (totalMetrics.spend / totalMetrics.impressions) * 1000 : 0;
 
-    return new Response(
-      JSON.stringify({
-        periods,
-        campaigns: campaigns.map((c) => ({ id: c.id, name: c.name })),
-        by_campaign,
-        totals: totalMetrics,
-        data_through: until,
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    res.status(200).json({
+      periods,
+      campaigns: campaigns.map((c) => ({ id: c.id, name: c.name })),
+      by_campaign,
+      totals: totalMetrics,
+      data_through: until,
+    });
   } catch (err) {
     console.error(err);
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    res.status(500).json({ error: String(err) });
   }
 };

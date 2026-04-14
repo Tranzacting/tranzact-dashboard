@@ -66,14 +66,16 @@ async function hasAnyData() {
   return rows.length > 0;
 }
 
-module.exports = async (req) => {
+module.exports = async (req, res) => {
   // Only allow POST to trigger sync manually (or scheduled via cron webhook)
   if (req.method !== "POST" && req.method !== "GET") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
+    res.status(405).json({ error: "Method not allowed" });
+    return;
   }
 
   if (!FB_TOKEN || !FB_ACCOUNT_ID || !SUPABASE_URL || !SUPABASE_KEY) {
-    return new Response(JSON.stringify({ error: "Missing credentials" }), { status: 500 });
+    res.status(500).json({ error: "Missing credentials" });
+    return;
   }
 
   try {
@@ -95,14 +97,9 @@ module.exports = async (req) => {
     const rows = await fetchMetaInsights(since, todayStr);
     if (rows.length > 0) await upsertRows(rows);
 
-    return new Response(JSON.stringify({ synced: rows.length, since, until: todayStr }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    res.status(200).json({ synced: rows.length, since, until: todayStr });
   } catch (err) {
     console.error("Meta sync error:", err);
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    res.status(500).json({ error: String(err) });
   }
 };
