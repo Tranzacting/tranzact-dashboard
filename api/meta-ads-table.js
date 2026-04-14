@@ -10,7 +10,7 @@ const corsHeaders = {
 };
 
 function checkAuth(req, password) {
-  const auth = (req.headers.get && req.headers.get("Authorization")) || req.headers.authorization || "";
+  const auth = req.headers.authorization || "";
   const token = auth.replace("Bearer ", "");
   let decoded = "";
   try {
