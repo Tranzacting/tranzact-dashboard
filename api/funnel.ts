@@ -286,104 +286,115 @@ export default async (req: Request): Promise<Response> => {
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
   };
 
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  try {
+    if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  const auth = req.headers.get("Authorization") ?? "";
-  const token = auth.replace("Bearer ", "");
-  let password = "";
-  try { password = atob(token); } catch { /**/ }
-  if (password !== DASHBOARD_PASSWORD) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const auth = req.headers.get("Authorization") ?? "";
+    const token = auth.replace("Bearer ", "");
+    let password = "";
+    try { password = atob(token); } catch { /**/ }
+    if (password !== DASHBOARD_PASSWORD) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const url = new URL(req.url);
+    const cadence = url.searchParams.get("cadence") || "monthly";
+    const source = url.searchParams.get("source") || "all";
+    const leadType = url.searchParams.get("lead_type") || "all";
+    const campaignFb = url.searchParams.get("campaign_fb") || "";
+    const campaignGa = url.searchParams.get("campaign_ga") || "";
+
+    const now = new Date();
+    const defaultSince = `${now.getUTCFullYear()}-01-01`;
+    const defaultUntil = now.toISOString().slice(0, 10);
+    const since = url.searchParams.get("since") || defaultSince;
+    const until = url.searchParams.get("until") || defaultUntil;
+    const sinceTs = String(new Date(since + "T00:00:00Z").getTime());
+    const untilTs = String(new Date(until + "T23:59:59Z").getTime());
+    const periods = generatePeriods(since, until, cadence);
+
+    const sourceFilters: Array<{ propertyName: string; operator: string; value?: string }> = [];
+    if (source === "facebook") sourceFilters.push({ propertyName: "deal_source_25", operator: "EQ", value: "Facebook" });
+    else if (source === "google") sourceFilters.push({ propertyName: "deal_source_25", operator: "EQ", value: "Google" });
+    else if (source === "others") {
+      sourceFilters.push({ propertyName: "deal_source_25", operator: "NEQ", value: "Facebook" });
+      sourceFilters.push({ propertyName: "deal_source_25", operator: "NEQ", value: "Google" });
+    }
+
+    const leadTypeFilters: Array<{ propertyName: string; operator: string }> = [];
+    if (leadType === "signup") leadTypeFilters.push({ propertyName: "first_demo_schedule_datetime", operator: "NOT_HAS_PROPERTY" });
+    else if (leadType === "demo") leadTypeFilters.push({ propertyName: "first_demo_schedule_datetime", operator: "HAS_PROPERTY" });
+
+    const allHsFilters = [...sourceFilters, ...leadTypeFilters];
+
+    // MQL filters: form_is_manufacturing = Yes AND form_designation IN [Owner, HOD]
+    const mqlFilters = [
+      { propertyName: "form_is_manufacturing", operator: "EQ", value: "Yes" },
+      { propertyName: "form_designation", operator: "IN", values: ["Owner", "HOD"] },
+      ...sourceFilters,
+      ...leadTypeFilters,
+    ] as Array<{ propertyName: string; operator: string; value?: string; values?: string[] }>;
+
+    const fetchFB = source === "all" || source === "facebook";
+    const fetchGA = source === "all" || source === "google";
+
+    const [fbRows, gaResult, mqlDeals, sqlDeals, demoDeals, paidDeals, fbCampaigns, gaCampaignsResult] = await Promise.all([
+      fetchFB ? fetchFBDailyInsights(since, until, campaignFb || undefined) : Promise.resolve([]),
+      fetchGA ? fetchGADailyInsights(since, until, campaignGa || undefined) : Promise.resolve({ rows: [], error: undefined as string | undefined }),
+      fetchHSDeals("last_crm_lead_datetime", sinceTs, untilTs, mqlFilters, ["last_crm_lead_datetime"]),
+      fetchHSDeals("first_demo_schedule_datetime", sinceTs, untilTs, allHsFilters, ["first_demo_schedule_datetime"]),
+      fetchHSDeals("first_demo_complete_datetime", sinceTs, untilTs, allHsFilters, ["first_demo_complete_datetime"]),
+      fetchHSDeals("first_payment_date", sinceTs, untilTs, allHsFilters, ["first_payment_date"]),
+      fetchFBCampaigns(),
+      fetchGACampaigns(),
+    ]);
+
+    const fbByPeriod = aggregateAdsByPeriod(fbRows, cadence, periods);
+    const gaByPeriod = aggregateAdsByPeriod(gaResult.rows, cadence, periods);
+    const mqlsByPeriod = groupDealsByPeriod(mqlDeals, "last_crm_lead_datetime", cadence, periods);
+    const sqlsByPeriod = groupDealsByPeriod(sqlDeals, "first_demo_schedule_datetime", cadence, periods);
+    const demosByPeriod = groupDealsByPeriod(demoDeals, "first_demo_complete_datetime", cadence, periods);
+    const paidByPeriod = groupDealsByPeriod(paidDeals, "first_payment_date", cadence, periods);
+
+    const data: Record<string, PeriodMetrics> = {};
+    for (const p of periods) {
+      const fb = fbByPeriod[p] ?? { spend: 0, impressions: 0, reach: 0, clicks: 0 };
+      const ga = gaByPeriod[p] ?? { spend: 0, impressions: 0, reach: 0, clicks: 0 };
+      data[p] = buildMetrics(
+        { spend: fb.spend + ga.spend, impressions: fb.impressions + ga.impressions, reach: fb.reach + ga.reach, clicks: fb.clicks + ga.clicks },
+        mqlsByPeriod[p] ?? 0, sqlsByPeriod[p] ?? 0, demosByPeriod[p] ?? 0, paidByPeriod[p] ?? 0
+      );
+    }
+
+    const totalsAds = { spend: 0, impressions: 0, reach: 0, clicks: 0 };
+    let totalMqls = 0, totalSqls = 0, totalDemos = 0, totalPaid = 0;
+    for (const p of periods) {
+      totalsAds.spend += data[p].spend; totalsAds.impressions += data[p].impressions;
+      totalsAds.reach += data[p].reach; totalsAds.clicks += data[p].clicks;
+      totalMqls += data[p].mqls; totalSqls += data[p].sqls;
+      totalDemos += data[p].demos; totalPaid += data[p].paid;
+    }
+
+    return new Response(JSON.stringify({
+      periods, data,
+      totals: buildMetrics(totalsAds, totalMqls, totalSqls, totalDemos, totalPaid),
+      meta: {
+        campaigns_fb: fbCampaigns,
+        campaigns_ga: gaCampaignsResult.campaigns,
+        errors: { google_ads: gaResult.error ?? gaCampaignsResult.error ?? null },
+      },
+      lastUpdated: new Date().toISOString(),
+    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  } catch (error) {
+    return new Response(JSON.stringify({
+      error: "Internal Server Error",
+      message: error instanceof Error ? error.message : String(error),
+      lastUpdated: new Date().toISOString(),
+    }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
     });
   }
-
-  const url = new URL(req.url);
-  const cadence = url.searchParams.get("cadence") || "monthly";
-  const source = url.searchParams.get("source") || "all";
-  const leadType = url.searchParams.get("lead_type") || "all";
-  const campaignFb = url.searchParams.get("campaign_fb") || "";
-  const campaignGa = url.searchParams.get("campaign_ga") || "";
-
-  const now = new Date();
-  const defaultSince = `${now.getUTCFullYear()}-01-01`;
-  const defaultUntil = now.toISOString().slice(0, 10);
-  const since = url.searchParams.get("since") || defaultSince;
-  const until = url.searchParams.get("until") || defaultUntil;
-  const sinceTs = String(new Date(since + "T00:00:00Z").getTime());
-  const untilTs = String(new Date(until + "T23:59:59Z").getTime());
-  const periods = generatePeriods(since, until, cadence);
-
-  const sourceFilters: Array<{ propertyName: string; operator: string; value?: string }> = [];
-  if (source === "facebook") sourceFilters.push({ propertyName: "deal_source_25", operator: "EQ", value: "Facebook" });
-  else if (source === "google") sourceFilters.push({ propertyName: "deal_source_25", operator: "EQ", value: "Google" });
-  else if (source === "others") {
-    sourceFilters.push({ propertyName: "deal_source_25", operator: "NEQ", value: "Facebook" });
-    sourceFilters.push({ propertyName: "deal_source_25", operator: "NEQ", value: "Google" });
-  }
-
-  const leadTypeFilters: Array<{ propertyName: string; operator: string }> = [];
-  if (leadType === "signup") leadTypeFilters.push({ propertyName: "first_demo_schedule_datetime", operator: "NOT_HAS_PROPERTY" });
-  else if (leadType === "demo") leadTypeFilters.push({ propertyName: "first_demo_schedule_datetime", operator: "HAS_PROPERTY" });
-
-  const allHsFilters = [...sourceFilters, ...leadTypeFilters];
-
-  // MQL filters: form_is_manufacturing = Yes AND form_designation IN [Owner, HOD]
-  const mqlFilters = [
-    { propertyName: "form_is_manufacturing", operator: "EQ", value: "Yes" },
-    { propertyName: "form_designation", operator: "IN", values: ["Owner", "HOD"] },
-    ...sourceFilters,
-    ...leadTypeFilters,
-  ] as Array<{ propertyName: string; operator: string; value?: string; values?: string[] }>;
-
-  const fetchFB = source === "all" || source === "facebook";
-  const fetchGA = source === "all" || source === "google";
-
-  const [fbRows, gaResult, mqlDeals, sqlDeals, demoDeals, paidDeals, fbCampaigns, gaCampaignsResult] = await Promise.all([
-    fetchFB ? fetchFBDailyInsights(since, until, campaignFb || undefined) : Promise.resolve([]),
-    fetchGA ? fetchGADailyInsights(since, until, campaignGa || undefined) : Promise.resolve({ rows: [], error: undefined as string | undefined }),
-    fetchHSDeals("last_crm_lead_datetime", sinceTs, untilTs, mqlFilters, ["last_crm_lead_datetime"]),
-    fetchHSDeals("first_demo_schedule_datetime", sinceTs, untilTs, allHsFilters, ["first_demo_schedule_datetime"]),
-    fetchHSDeals("first_demo_complete_datetime", sinceTs, untilTs, allHsFilters, ["first_demo_complete_datetime"]),
-    fetchHSDeals("first_payment_date", sinceTs, untilTs, allHsFilters, ["first_payment_date"]),
-    fetchFBCampaigns(),
-    fetchGACampaigns(),
-  ]);
-
-  const fbByPeriod = aggregateAdsByPeriod(fbRows, cadence, periods);
-  const gaByPeriod = aggregateAdsByPeriod(gaResult.rows, cadence, periods);
-  const mqlsByPeriod = groupDealsByPeriod(mqlDeals, "last_crm_lead_datetime", cadence, periods);
-  const sqlsByPeriod = groupDealsByPeriod(sqlDeals, "first_demo_schedule_datetime", cadence, periods);
-  const demosByPeriod = groupDealsByPeriod(demoDeals, "first_demo_complete_datetime", cadence, periods);
-  const paidByPeriod = groupDealsByPeriod(paidDeals, "first_payment_date", cadence, periods);
-
-  const data: Record<string, PeriodMetrics> = {};
-  for (const p of periods) {
-    const fb = fbByPeriod[p] ?? { spend: 0, impressions: 0, reach: 0, clicks: 0 };
-    const ga = gaByPeriod[p] ?? { spend: 0, impressions: 0, reach: 0, clicks: 0 };
-    data[p] = buildMetrics(
-      { spend: fb.spend + ga.spend, impressions: fb.impressions + ga.impressions, reach: fb.reach + ga.reach, clicks: fb.clicks + ga.clicks },
-      mqlsByPeriod[p] ?? 0, sqlsByPeriod[p] ?? 0, demosByPeriod[p] ?? 0, paidByPeriod[p] ?? 0
-    );
-  }
-
-  const totalsAds = { spend: 0, impressions: 0, reach: 0, clicks: 0 };
-  let totalMqls = 0, totalSqls = 0, totalDemos = 0, totalPaid = 0;
-  for (const p of periods) {
-    totalsAds.spend += data[p].spend; totalsAds.impressions += data[p].impressions;
-    totalsAds.reach += data[p].reach; totalsAds.clicks += data[p].clicks;
-    totalMqls += data[p].mqls; totalSqls += data[p].sqls;
-    totalDemos += data[p].demos; totalPaid += data[p].paid;
-  }
-
-  return new Response(JSON.stringify({
-    periods, data,
-    totals: buildMetrics(totalsAds, totalMqls, totalSqls, totalDemos, totalPaid),
-    meta: {
-      campaigns_fb: fbCampaigns,
-      campaigns_ga: gaCampaignsResult.campaigns,
-      errors: { google_ads: gaResult.error ?? gaCampaignsResult.error ?? null },
-    },
-    lastUpdated: new Date().toISOString(),
-  }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 };
