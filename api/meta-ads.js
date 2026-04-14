@@ -156,7 +156,7 @@ function computeMetrics(data) {
   };
 }
 
-export default async (req) => {
+module.exports = async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

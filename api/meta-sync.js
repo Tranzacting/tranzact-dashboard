@@ -66,7 +66,7 @@ async function hasAnyData() {
   return rows.length > 0;
 }
 
-export default async (req) => {
+module.exports = async (req) => {
   // Only allow POST to trigger sync manually (or scheduled via cron webhook)
   if (req.method !== "POST" && req.method !== "GET") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
