@@ -17,7 +17,7 @@ function checkAuth(req, password) {
   } catch {
     /* */
   }
-  return decoded === password;
+  return decoded === password.trim();
 }
 
 async function fetchMetaInsights(since, until) {

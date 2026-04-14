@@ -18,7 +18,7 @@ function checkAuth(req, password) {
   } catch {
     /* */
   }
-  return decoded === password;
+  return decoded === password.trim();
 }
 
 function extractResults(actions = []) {
