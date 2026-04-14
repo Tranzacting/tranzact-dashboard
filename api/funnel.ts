@@ -340,7 +340,7 @@ export default async (req: Request): Promise<Response> => {
     const fetchFB = source === "all" || source === "facebook";
     const fetchGA = source === "all" || source === "google";
 
-    const [fbRows, gaResult, mqlDeals, sqlDeals, demoDeals, paidDeals, fbCampaigns, gaCampaignsResult] = await Promise.all([
+    const promises = [
       fetchFB ? fetchFBDailyInsights(since, until, campaignFb || undefined) : Promise.resolve([]),
       fetchGA ? fetchGADailyInsights(since, until, campaignGa || undefined) : Promise.resolve({ rows: [], error: undefined as string | undefined }),
       fetchHSDeals("last_crm_lead_datetime", sinceTs, untilTs, mqlFilters, ["last_crm_lead_datetime"]),
@@ -349,7 +349,19 @@ export default async (req: Request): Promise<Response> => {
       fetchHSDeals("first_payment_date", sinceTs, untilTs, allHsFilters, ["first_payment_date"]),
       fetchFBCampaigns(),
       fetchGACampaigns(),
-    ]);
+    ];
+
+    const results = await Promise.allSettled(promises);
+    const [fbRowsResult, gaResultResult, mqlDealsResult, sqlDealsResult, demoDealsResult, paidDealsResult, fbCampaignsResult, gaCampaignsResultResult] = results;
+
+    const fbRows = fbRowsResult.status === "fulfilled" ? fbRowsResult.value : [];
+    const gaResult = gaResultResult.status === "fulfilled" ? gaResultResult.value : { rows: [], error: "API call failed" };
+    const mqlDeals = mqlDealsResult.status === "fulfilled" ? mqlDealsResult.value : [];
+    const sqlDeals = sqlDealsResult.status === "fulfilled" ? sqlDealsResult.value : [];
+    const demoDeals = demoDealsResult.status === "fulfilled" ? demoDealsResult.value : [];
+    const paidDeals = paidDealsResult.status === "fulfilled" ? paidDealsResult.value : [];
+    const fbCampaigns = fbCampaignsResult.status === "fulfilled" ? fbCampaignsResult.value : [];
+    const gaCampaignsResult = gaCampaignsResultResult.status === "fulfilled" ? gaCampaignsResultResult.value : { campaigns: [], error: "API call failed" };
 
     const fbByPeriod = aggregateAdsByPeriod(fbRows, cadence, periods);
     const gaByPeriod = aggregateAdsByPeriod(gaResult.rows, cadence, periods);
