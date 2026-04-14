@@ -340,15 +340,22 @@ export default async (req: Request): Promise<Response> => {
     const fetchFB = source === "all" || source === "facebook";
     const fetchGA = source === "all" || source === "google";
 
+    const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T> => {
+      return Promise.race([
+        promise,
+        new Promise<T>((_, reject) => setTimeout(() => reject(new Error("API timeout")), ms)),
+      ]);
+    };
+
     const promises = [
-      fetchFB ? fetchFBDailyInsights(since, until, campaignFb || undefined) : Promise.resolve([]),
-      fetchGA ? fetchGADailyInsights(since, until, campaignGa || undefined) : Promise.resolve({ rows: [], error: undefined as string | undefined }),
-      fetchHSDeals("last_crm_lead_datetime", sinceTs, untilTs, mqlFilters, ["last_crm_lead_datetime"]),
-      fetchHSDeals("first_demo_schedule_datetime", sinceTs, untilTs, allHsFilters, ["first_demo_schedule_datetime"]),
-      fetchHSDeals("first_demo_complete_datetime", sinceTs, untilTs, allHsFilters, ["first_demo_complete_datetime"]),
-      fetchHSDeals("first_payment_date", sinceTs, untilTs, allHsFilters, ["first_payment_date"]),
-      fetchFBCampaigns(),
-      fetchGACampaigns(),
+      withTimeout(fetchFB ? fetchFBDailyInsights(since, until, campaignFb || undefined) : Promise.resolve([]), 8000),
+      withTimeout(fetchGA ? fetchGADailyInsights(since, until, campaignGa || undefined) : Promise.resolve({ rows: [], error: undefined as string | undefined }), 8000),
+      withTimeout(fetchHSDeals("last_crm_lead_datetime", sinceTs, untilTs, mqlFilters, ["last_crm_lead_datetime"]), 8000),
+      withTimeout(fetchHSDeals("first_demo_schedule_datetime", sinceTs, untilTs, allHsFilters, ["first_demo_schedule_datetime"]), 8000),
+      withTimeout(fetchHSDeals("first_demo_complete_datetime", sinceTs, untilTs, allHsFilters, ["first_demo_complete_datetime"]), 8000),
+      withTimeout(fetchHSDeals("first_payment_date", sinceTs, untilTs, allHsFilters, ["first_payment_date"]), 8000),
+      withTimeout(fetchFBCampaigns(), 5000),
+      withTimeout(fetchGACampaigns(), 5000),
     ];
 
     const results = await Promise.allSettled(promises);
