@@ -10,7 +10,7 @@ const corsHeaders = {
 };
 
 function checkAuth(req, password) {
-  const auth = req.headers.get("Authorization") ?? "";
+  const auth = (req.headers.get && req.headers.get("Authorization")) || req.headers.authorization || "";
   const token = auth.replace("Bearer ", "");
   let decoded = "";
   try {
@@ -137,17 +137,23 @@ function buildHSMap(deals) {
   return map;
 }
 
-module.exports = async (req) => {
-  if (req.method === "OPTIONS")
-    return new Response(null, { headers: corsHeaders });
+module.exports = async (req, res) => {
+  // Set CORS headers
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  if (!checkAuth(req, DASHBOARD_PASSWORD))
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+  if (req.method === "OPTIONS") {
+    res.status(200).end();
+    return;
+  }
 
-  const url = new URL(req.url);
+  if (!checkAuth(req, DASHBOARD_PASSWORD)) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  const url = new URL(req.url, `https://${req.headers.host}`);
   const since = url.searchParams.get("since") ?? `${new Date().getFullYear()}-01-01`;
   const until = url.searchParams.get("until") ?? new Date().toISOString().slice(0, 10);
 
@@ -413,14 +419,9 @@ module.exports = async (req) => {
       },
     };
 
-    return new Response(JSON.stringify(response), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    res.status(200).json(response);
   } catch (err) {
     console.error("Meta ads table error:", err);
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    res.status(500).json({ error: String(err) });
   }
 };

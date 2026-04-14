@@ -1,10 +1,7 @@
-module.exports = async (req) => {
+module.exports = async (req, res) => {
   console.log("Test endpoint called");
-  return new Response(JSON.stringify({
+  res.status(200).json({
     message: "Test endpoint works",
     timestamp: new Date().toISOString()
-  }), {
-    headers: { "Content-Type": "application/json" },
-    status: 200
   });
 };
