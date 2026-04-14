@@ -339,7 +339,7 @@ export default async (req: IncomingMessage & { query?: Record<string, any> }, re
         "last_crm_lead_datetime",
         sinceTs,
         untilTs,
-        [fbFilter],
+        [],
         ["ads_name"]
       ),
       fetchHSDeals(
