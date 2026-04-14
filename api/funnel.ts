@@ -348,14 +348,14 @@ export default async (req: Request): Promise<Response> => {
     };
 
     const promises = [
-      withTimeout(fetchFB ? fetchFBDailyInsights(since, until, campaignFb || undefined) : Promise.resolve([]), 8000),
-      withTimeout(fetchGA ? fetchGADailyInsights(since, until, campaignGa || undefined) : Promise.resolve({ rows: [], error: undefined as string | undefined }), 8000),
-      withTimeout(fetchHSDeals("last_crm_lead_datetime", sinceTs, untilTs, mqlFilters, ["last_crm_lead_datetime"]), 8000),
-      withTimeout(fetchHSDeals("first_demo_schedule_datetime", sinceTs, untilTs, allHsFilters, ["first_demo_schedule_datetime"]), 8000),
-      withTimeout(fetchHSDeals("first_demo_complete_datetime", sinceTs, untilTs, allHsFilters, ["first_demo_complete_datetime"]), 8000),
-      withTimeout(fetchHSDeals("first_payment_date", sinceTs, untilTs, allHsFilters, ["first_payment_date"]), 8000),
-      withTimeout(fetchFBCampaigns(), 5000),
-      withTimeout(fetchGACampaigns(), 5000),
+      withTimeout(fetchFB ? fetchFBDailyInsights(since, until, campaignFb || undefined) : Promise.resolve([]), 3000),
+      withTimeout(fetchGA ? fetchGADailyInsights(since, until, campaignGa || undefined) : Promise.resolve({ rows: [], error: undefined as string | undefined }), 3000),
+      withTimeout(fetchHSDeals("last_crm_lead_datetime", sinceTs, untilTs, mqlFilters, ["last_crm_lead_datetime"]), 3000),
+      withTimeout(fetchHSDeals("first_demo_schedule_datetime", sinceTs, untilTs, allHsFilters, ["first_demo_schedule_datetime"]), 3000),
+      withTimeout(fetchHSDeals("first_demo_complete_datetime", sinceTs, untilTs, allHsFilters, ["first_demo_complete_datetime"]), 3000),
+      withTimeout(fetchHSDeals("first_payment_date", sinceTs, untilTs, allHsFilters, ["first_payment_date"]), 3000),
+      withTimeout(fetchFBCampaigns(), 2000),
+      withTimeout(fetchGACampaigns(), 2000),
     ];
 
     const results = await Promise.allSettled(promises);
