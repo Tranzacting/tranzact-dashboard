@@ -2,6 +2,11 @@
 .netlify
 .vercel
 
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
 # Large asset directories
 Ads/
 Webinar/
