@@ -2,17 +2,10 @@
   "name": "tranzact",
   "type": "module",
   "scripts": {
-    "funnel": "tsx scripts/funnel-report.ts",
-    "optimize:seed": "tsx scripts/optimization/seed-learnings.ts",
-    "optimize:pull": "tsx scripts/optimization/pull-metrics.ts",
-    "notion:sync": "tsx scripts/notion-sync-doc.ts",
-    "optimize:weekly:pull": "tsx scripts/optimization/pull-weekly.ts",
-    "optimize:weekly:notion": "tsx scripts/optimization/notion-weekly-sync.ts"
+    "funnel": "tsx scripts/funnel-report.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.27.0",
-    "@notionhq/client": "^5.18.0",
-    "@tryfabric/martian": "^1.2.4",
     "dotenv": "^16.4.0",
     "puppeteer": "^24.40.0",
     "tsx": "^4.19.0"

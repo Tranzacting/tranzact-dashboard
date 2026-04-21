@@ -12,15 +12,11 @@
  * it is archived before creating a fresh page. This keeps the URL churny but keeps
  * content always in sync (no stale blocks left behind).
  */
-import dotenv from 'dotenv';
+import './_env';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Client } from '@notionhq/client';
 import { markdownToBlocks } from '@tryfabric/martian';
-
-dotenv.config({ path: 'dashboard/.env' });
-dotenv.config({ path: '.env' });
-dotenv.config({ path: '.env.vercel' });
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const NOTION_PARENT_PAGE_ID = process.env.NOTION_PARENT_PAGE_ID;

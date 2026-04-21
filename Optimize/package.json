@@ -1,0 +1,20 @@
+{
+  "name": "tranzact-optimize",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "TranZact reporting & ads optimization layer — Monday weekly review, Notion sync, self-learning knowledge base.",
+  "scripts": {
+    "pull": "tsx scripts/pull-metrics.ts",
+    "seed": "tsx scripts/seed-learnings.ts",
+    "weekly:pull": "tsx scripts/pull-weekly.ts",
+    "weekly:notion": "tsx scripts/notion-weekly-sync.ts",
+    "notion:sync": "tsx scripts/notion-sync-doc.ts"
+  },
+  "dependencies": {
+    "@notionhq/client": "^5.18.0",
+    "@tryfabric/martian": "^1.2.4",
+    "dotenv": "^16.4.0",
+    "tsx": "^4.19.0"
+  }
+}
