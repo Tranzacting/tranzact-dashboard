@@ -7,10 +7,7 @@
  *
  * Outputs structured JSON to stdout for downstream analysis + Notion sync.
  */
-import dotenv from 'dotenv';
-dotenv.config({ path: 'dashboard/.env' });
-dotenv.config({ path: '.env' });
-dotenv.config({ path: '.env.vercel' });
+import './_env';
 
 const HS_TOKEN = process.env.HUBSPOT_PRIVATE_APP_TOKEN ?? '';
 const FB_ADS_TOKEN = process.env.FB_ADS_TOKEN ?? '';

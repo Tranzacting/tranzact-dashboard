@@ -1,8 +1,4 @@
-import dotenv from "dotenv";
-
-// Load env vars: dashboard/.env has all API keys, .env.vercel has Supabase
-dotenv.config({ path: "dashboard/.env" });
-dotenv.config({ path: ".env.vercel" });
+import './_env';
 
 const SUPABASE_URL = process.env.SUPABASE_URL ?? "";
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY ?? "";

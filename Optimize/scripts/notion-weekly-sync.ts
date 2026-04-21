@@ -7,13 +7,9 @@
  *
  * Behavior: archives any prior sub-page with the same week title, creates fresh, populates with blocks.
  */
-import dotenv from 'dotenv';
+import './_env';
 import fs from 'node:fs';
 import { Client } from '@notionhq/client';
-
-dotenv.config({ path: '.env' });
-dotenv.config({ path: 'dashboard/.env' });
-dotenv.config({ path: '.env.vercel' });
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const METHODOLOGY_PAGE_TITLE = 'Campaign Optimization Methodology';

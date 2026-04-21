@@ -1,8 +1,4 @@
-import dotenv from "dotenv";
-
-// Load env vars: dashboard/.env has all API keys, .env.vercel has Supabase
-dotenv.config({ path: "dashboard/.env" });
-dotenv.config({ path: ".env.vercel" });
+import './_env';
 
 // --- Environment ---
 const HS_TOKEN = process.env.HUBSPOT_PRIVATE_APP_TOKEN ?? "";
