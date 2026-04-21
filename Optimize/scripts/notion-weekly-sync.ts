@@ -158,8 +158,18 @@ async function main() {
   const focal = data.focal_week;
   const w1 = data.cohorts['W-1'].overall;
   const w2 = data.cohorts['W-2'].overall;
-  const w2ByCampaign: Array<{ campaign: string; mqls: number; sqls: number; sql_pct: number; connect_rate_pct: number; sd_positive_pct: number }> =
-    data.cohorts['W-2'].byCampaign;
+
+  // Per-campaign enriched view (from pull-weekly.ts, with focal / w2 / baseline_4w)
+  interface CampaignRow {
+    campaign_id: string;
+    campaign_name: string;
+    focal: { ctr_pct: number; conv_rate_pct: number; mqls: number; sqls: number; sql_pct: number; connect_rate_pct: number; sd_positive_pct: number; link_clicks: number; impressions: number; spend: number };
+    w2: { ctr_pct: number; conv_rate_pct: number; mqls: number; sqls: number; sql_pct: number; connect_rate_pct: number; sd_positive_pct: number };
+    baseline_4w: { ctr_pct: number; conv_rate_pct: number };
+    verdict: string;
+  }
+  const campaigns: CampaignRow[] = data.campaigns ?? [];
+
   const weeklyHistoryLabels = ['W-0 (in progress)', 'W-1 (focal)', 'W-2 (mature)', 'W-3', 'W-4'];
   const weeklyHistory = ['W-0', 'W-1', 'W-2', 'W-3', 'W-4'].map((label, i) => {
     const c = data.cohorts[label].overall;
@@ -171,13 +181,13 @@ async function main() {
   const sqlStatus = w1.sqls >= 40 ? '✅' : '❌';
   const sqlPctStatus = w2.sql_pct >= 10 ? '✅' : '❌';
 
-  // Verdict per campaign
-  function verdict(c: typeof w2ByCampaign[0]): string {
-    if (c.sql_pct >= 10 && c.mqls >= 20) return '✅ Above benchmark';
-    if (c.mqls < 20) return '⏸ Too small to judge';
-    if (c.sql_pct < 2 && c.mqls >= 50) return '🛑 Pause candidate (Rule 1)';
-    if (c.sql_pct < 10) return '⚠️ Below benchmark (investigate)';
-    return '—';
+  // Comparison cell — shows "{w1}% vs {other}% {arrow}" where higher = better (CTR, Conv.rate)
+  function cmp(w1v: number, otherV: number): string {
+    if (otherV === 0 && w1v === 0) return '—';
+    if (otherV === 0) return `${pct(w1v)} (new)`;
+    const deltaRel = (w1v - otherV) / otherV;
+    const arrow = Math.abs(deltaRel) < 0.03 ? '→' : deltaRel > 0 ? '↑' : '↓';
+    return `${pct(w1v)} vs ${pct(otherV)} ${arrow}`;
   }
 
   const blocks = [
@@ -198,10 +208,34 @@ async function main() {
     ),
 
     h2('W-2 cohort by campaign (Paid ads)'),
-    p('Each campaign\'s just-matured cohort. Uses W-2 SQL% as the verdict metric. Funnel layers shown so process vs. campaign-quality can be separated.'),
+    p('Each campaign is scored on its mature (W-2) cohort. CTR and Conv.rate (MQL ÷ link clicks) shown with two comparisons: last week (W-2) and the 4-week rolling baseline. ↑ = W-1 better, ↓ = W-1 worse, → ≈ unchanged.'),
     table(
-      ['Campaign', 'MQLs', 'SQLs', 'SQL%', 'Connect %', 'SD+ %', 'Verdict'],
-      w2ByCampaign.map((c) => [c.campaign, c.mqls, c.sqls, pct(c.sql_pct), pct(c.connect_rate_pct), pct(c.sd_positive_pct), verdict(c)]),
+      [
+        'Campaign',
+        'MQLs (W-2)',
+        'SQLs (W-2)',
+        'SQL% (W-2)',
+        'CTR — W-1 vs W-2',
+        'CTR — W-1 vs 4W',
+        'Conv.rate — W-1 vs W-2',
+        'Conv.rate — W-1 vs 4W',
+        'Connect % (W-2)',
+        'SD+ % (W-2)',
+        'Verdict',
+      ],
+      campaigns.map((c) => [
+        c.campaign_name,
+        c.w2.mqls,
+        c.w2.sqls,
+        pct(c.w2.sql_pct),
+        cmp(c.focal.ctr_pct, c.w2.ctr_pct),
+        cmp(c.focal.ctr_pct, c.baseline_4w.ctr_pct),
+        cmp(c.focal.conv_rate_pct, c.w2.conv_rate_pct),
+        cmp(c.focal.conv_rate_pct, c.baseline_4w.conv_rate_pct),
+        pct(c.w2.connect_rate_pct),
+        pct(c.w2.sd_positive_pct),
+        c.verdict,
+      ]),
     ),
 
     h2('Recommendations this week'),

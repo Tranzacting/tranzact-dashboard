@@ -2,10 +2,17 @@
  * Monday weekly pull — reviews the just-completed Mon–Sun week.
  *
  * Usage:
- *   npx tsx scripts/optimization/pull-weekly.ts                    # assumes today is Monday, reviews W-1
- *   npx tsx scripts/optimization/pull-weekly.ts --review-mon 2026-04-20  # explicit review date
+ *   npm run weekly:pull                          # assumes today is Monday, reviews W-1
+ *   npm run weekly:pull -- --review-mon 2026-04-20  # explicit review date
  *
  * Outputs structured JSON to stdout for downstream analysis + Notion sync.
+ *
+ * For each paid-ads campaign, produces three periods — W-1 (focal), W-2 (last
+ * complete week), and a 4-week baseline (W-2 through W-5) — each with:
+ *   - spend, impressions, inline_link_clicks (real link clicks, not generic clicks)
+ *   - CTR = inline_link_clicks / impressions
+ *   - mqls, sqls, sql_pct from HubSpot cohort
+ *   - conv_rate_pct = mqls / inline_link_clicks
  */
 import './_env';
 
@@ -32,9 +39,8 @@ function addDays(date: string, n: number): string {
 }
 
 function isoWeekNumber(date: string): number {
-  // ISO week: Monday start, Thursday anchor
   const d = new Date(date + 'T00:00:00Z');
-  const dayNum = (d.getUTCDay() + 6) % 7; // Mon=0
+  const dayNum = (d.getUTCDay() + 6) % 7;
   d.setUTCDate(d.getUTCDate() - dayNum + 3);
   const firstThursday = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
   const diff = (d.getTime() - firstThursday.getTime()) / 86400000;
@@ -67,7 +73,6 @@ async function fetchDeals(
       });
       if (res.status !== 429) break;
       attempt += 1;
-      // Exponential backoff: 1s, 2s, 4s, 8s, 16s
       await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt - 1)));
     }
     if (!res || !res.ok) {
@@ -81,7 +86,6 @@ async function fetchDeals(
     for (const r of data.results ?? []) deals.push(r.properties);
     if (!data.paging?.next?.after || deals.length >= 10000) break;
     after = data.paging.next.after;
-    // Gentle pacing to stay under secondly cap (HS free tier: ~10 req/sec)
     await new Promise((r) => setTimeout(r, 120));
   }
   return deals;
@@ -176,7 +180,8 @@ interface FBRow {
   campaign_name: string;
   spend: number;
   impressions: number;
-  clicks: number;
+  clicks: number;          // generic clicks (all click types)
+  link_clicks: number;     // inline_link_clicks (landing-page-bound clicks)
 }
 
 async function fetchFB(since: string, until: string): Promise<FBRow[]> {
@@ -184,22 +189,67 @@ async function fetchFB(since: string, until: string): Promise<FBRow[]> {
   const acc = FB_ADS_ACCOUNT_ID.replace('act_', '');
   const url =
     `https://graph.facebook.com/v19.0/act_${acc}/insights` +
-    `?fields=campaign_id,campaign_name,spend,impressions,clicks` +
+    `?fields=campaign_id,campaign_name,spend,impressions,clicks,inline_link_clicks` +
     `&level=campaign&time_range[since]=${since}&time_range[until]=${until}` +
     `&limit=500&access_token=${FB_ADS_TOKEN}`;
   const res = await fetch(url);
   if (!res.ok) {
-    console.error('FB error', res.status);
+    console.error('FB error', res.status, await res.text());
     return [];
   }
-  const data = (await res.json()) as { data?: Array<{ campaign_id: string; campaign_name: string; spend: string; impressions: string; clicks: string }> };
+  const data = (await res.json()) as {
+    data?: Array<{ campaign_id: string; campaign_name: string; spend: string; impressions: string; clicks: string; inline_link_clicks?: string }>;
+  };
   return (data.data ?? []).map((r) => ({
     campaign_id: r.campaign_id,
     campaign_name: r.campaign_name,
     spend: parseFloat(r.spend || '0'),
     impressions: parseInt(r.impressions || '0'),
     clicks: parseInt(r.clicks || '0'),
+    link_clicks: parseInt(r.inline_link_clicks || '0'),
   }));
+}
+
+// --- Helpers for per-campaign merging ---
+
+function matchFunnelByName(byCampaign: CampaignRow[], fbName: string): CampaignRow | null {
+  const lower = fbName.toLowerCase();
+  return (
+    byCampaign.find(
+      (c) => c.campaign === lower || lower.includes(c.campaign) || c.campaign.includes(lower),
+    ) ?? null
+  );
+}
+
+interface PeriodMetrics {
+  spend: number;
+  impressions: number;
+  link_clicks: number;
+  ctr_pct: number;              // link_clicks / impressions
+  mqls: number;
+  sqls: number;
+  sql_pct: number;
+  conv_rate_pct: number;        // mqls / link_clicks
+  connect_rate_pct: number;
+  sd_positive_pct: number;
+}
+
+function periodMetrics(fb: FBRow | undefined, funnel: CampaignRow | null): PeriodMetrics {
+  const imp = fb?.impressions ?? 0;
+  const lc = fb?.link_clicks ?? 0;
+  const mqls = funnel?.mqls ?? 0;
+  return {
+    spend: fb?.spend ?? 0,
+    impressions: imp,
+    link_clicks: lc,
+    ctr_pct: imp > 0 ? Math.round((lc / imp) * 10000) / 100 : 0,
+    mqls,
+    sqls: funnel?.sqls ?? 0,
+    sql_pct: funnel?.sql_pct ?? 0,
+    conv_rate_pct: lc > 0 ? Math.round((mqls / lc) * 10000) / 100 : 0,
+    connect_rate_pct: funnel?.connect_rate_pct ?? 0,
+    sd_positive_pct: funnel?.sd_positive_pct ?? 0,
+  };
 }
 
 // --- Main ---
@@ -209,15 +259,17 @@ async function main() {
   const reviewMonFlag = args.indexOf('--review-mon');
   const reviewDate = reviewMonFlag >= 0 ? args[reviewMonFlag + 1] : dateStr(new Date());
 
-  // Focal week = W-1 = the Monday–Sunday that just ended
-  const w1End = addDays(reviewDate, -1); // Sunday
-  const w1Start = addDays(reviewDate, -7); // Previous Monday
+  const w1End = addDays(reviewDate, -1);
+  const w1Start = addDays(reviewDate, -7);
   const isoWeek = isoWeekNumber(w1Start);
 
-  // W-0: current in-progress week (review day onwards)
+  // Baseline = 4 weeks immediately before W-1 (i.e., W-2 start through W-5 end)
+  const baselineStart = addDays(w1Start, -28);
+  const baselineEnd = addDays(w1End, -7);
+
   const w0Start = reviewDate;
-  const w0End = dateStr(new Date()); // today
-  // W-2, W-3, W-4: further Mon-Sun windows
+  const w0End = dateStr(new Date());
+
   const windows = [
     { label: 'W-0', start: w0Start, end: w0End, status: 'in_progress' },
     { label: 'W-1', start: w1Start, end: w1End, status: 'focal' },
@@ -226,43 +278,69 @@ async function main() {
     { label: 'W-4', start: addDays(w1Start, -21), end: addDays(w1End, -21), status: 'historical' },
   ];
 
-  console.error(`Monday review ${reviewDate} → focal week W${isoWeek} (${w1Start} → ${w1End})`);
+  console.error(`Monday review ${reviewDate} → focal W${isoWeek} (${w1Start} → ${w1End}), baseline ${baselineStart} → ${baselineEnd}`);
 
-  // Pull cohorts sequentially to stay under HubSpot's secondly rate limit
+  // Cohort pulls (sequential for HS rate limits)
   const cohortResults: Array<(typeof windows)[number] & Awaited<ReturnType<typeof pullCohort>>> = [];
   for (const w of windows) {
     const data = await pullCohort(w.start, w.end);
     console.error(`  ${w.label} ${w.start}→${w.end}: ${data.overall.mqls} MQLs`);
     cohortResults.push({ ...w, ...data });
   }
+  // Baseline cohort (single 4-week pull)
+  const baselineCohort = await pullCohort(baselineStart, baselineEnd);
+  console.error(`  baseline ${baselineStart}→${baselineEnd}: ${baselineCohort.overall.mqls} MQLs`);
 
-  // Pull FB for focal week
+  // FB pulls for W-1, W-2, and baseline (4-week aggregate)
   const fbFocal = await fetchFB(w1Start, w1End);
+  const w2 = cohortResults.find((c) => c.label === 'W-2')!;
+  const fbW2 = await fetchFB(w2.start, w2.end);
+  const fbBaseline = await fetchFB(baselineStart, baselineEnd);
+  console.error(`  FB W-1: ${fbFocal.length} campaigns · W-2: ${fbW2.length} · 4W: ${fbBaseline.length}`);
+
   const fbTotal = fbFocal.reduce(
-    (a, c) => ({ spend: a.spend + c.spend, impressions: a.impressions + c.impressions, clicks: a.clicks + c.clicks }),
-    { spend: 0, impressions: 0, clicks: 0 },
+    (a, c) => ({
+      spend: a.spend + c.spend,
+      impressions: a.impressions + c.impressions,
+      clicks: a.clicks + c.clicks,
+      link_clicks: a.link_clicks + c.link_clicks,
+    }),
+    { spend: 0, impressions: 0, clicks: 0, link_clicks: 0 },
   );
 
-  // Merge FB ad metrics with focal-week cohort funnel by name (case-insensitive substring)
   const focal = cohortResults.find((c) => c.label === 'W-1')!;
-  const w2 = cohortResults.find((c) => c.label === 'W-2')!;
+
+  // Index baseline & W-2 FB by campaign_id for O(1) lookup
+  const fbW2ById = new Map(fbW2.map((r) => [r.campaign_id, r] as const));
+  const fbBaselineById = new Map(fbBaseline.map((r) => [r.campaign_id, r] as const));
+
+  // Build per-campaign view using focal as the driver (campaigns that ran W-1)
   const campaigns = fbFocal.map((fb) => {
-    const fbLower = fb.campaign_name.toLowerCase();
-    const focalFunnel = focal.byCampaign.find(
-      (c) => c.campaign === fbLower || fbLower.includes(c.campaign) || c.campaign.includes(fbLower),
-    );
-    const w2Funnel = w2.byCampaign.find(
-      (c) => c.campaign === fbLower || fbLower.includes(c.campaign) || c.campaign.includes(fbLower),
-    );
+    const focalFunnel = matchFunnelByName(focal.byCampaign, fb.campaign_name);
+    const w2Funnel = matchFunnelByName(w2.byCampaign, fb.campaign_name);
+    const baselineFunnel = matchFunnelByName(baselineCohort.byCampaign, fb.campaign_name);
+
+    const focalMetrics = periodMetrics(fb, focalFunnel);
+    const w2Metrics = periodMetrics(fbW2ById.get(fb.campaign_id), w2Funnel);
+    const baselineMetrics = periodMetrics(fbBaselineById.get(fb.campaign_id), baselineFunnel);
+
+    // Verdict uses W-2 as the mature-cohort verdict metric
+    let verdict = '—';
+    if (w2Funnel && w2Funnel.mqls >= 20) {
+      if (w2Funnel.sql_pct >= 10) verdict = '✅ Above benchmark';
+      else if (w2Funnel.sql_pct < 2 && w2Funnel.mqls >= 50) verdict = '🛑 Pause candidate (Rule 1)';
+      else verdict = '⚠️ Below benchmark (investigate)';
+    } else if (!w2Funnel || w2Funnel.mqls < 20) {
+      verdict = '⏸ Too small to judge';
+    }
+
     return {
       campaign_id: fb.campaign_id,
       campaign_name: fb.campaign_name,
-      spend: fb.spend,
-      impressions: fb.impressions,
-      clicks: fb.clicks,
-      ctr: fb.impressions > 0 ? (fb.clicks / fb.impressions) * 100 : 0,
-      focal_week: focalFunnel ?? null,
-      w2_cohort: w2Funnel ?? null,
+      focal: focalMetrics,
+      w2: w2Metrics,
+      baseline_4w: baselineMetrics,
+      verdict,
     };
   });
 
@@ -271,6 +349,8 @@ async function main() {
     week_label: `W${isoWeek}`,
     week_title: `W${isoWeek} (${w1Start.slice(8, 10)} - ${w1End.slice(8, 10)})`,
     focal_week: { start: w1Start, end: w1End },
+    w2_week: { start: w2.start, end: w2.end },
+    baseline_4w: { start: baselineStart, end: baselineEnd },
     fb_totals: fbTotal,
     campaigns,
     cohorts: {
@@ -279,6 +359,7 @@ async function main() {
       'W-2': cohortResults.find((c) => c.label === 'W-2'),
       'W-3': cohortResults.find((c) => c.label === 'W-3'),
       'W-4': cohortResults.find((c) => c.label === 'W-4'),
+      baseline_4w: baselineCohort,
     },
   };
 
