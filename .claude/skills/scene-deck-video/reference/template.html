@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TranZact — [VIDEO TITLE]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600&family=Inter:wght@500;600&family=Outfit:wght@400;500;600&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#0E0F0C;overflow:hidden;font-family:'Outfit',sans-serif}
+#stage{position:relative;width:100vw;height:100vh;overflow:hidden;background:#0E0F0C}
+.scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5vw 7vw;opacity:0;pointer-events:none;transition:opacity .48s ease;z-index:2;visibility:hidden}
+.scene.active{opacity:1;pointer-events:auto;visibility:visible}
+#particles{position:absolute;inset:0;pointer-events:none;z-index:0}
+#vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 30%,rgba(0,0,0,.8) 100%);pointer-events:none;z-index:1}
+
+/* ── TYPE SCALE — 3 levels, applied everywhere ─────────────────
+   --fs-h   headline    Montserrat 600  used for .display and hero words
+   --fs-s   sub-text    Outfit 400/300  used for .sub, card body, input text
+   --fs-p   para/label  Inter 500 (labels) / Outfit 400/600 (body) — card metadata, tags, eyebrows
+   ──────────────────────────────────────────────────────────── */
+:root{
+  --fs-h: clamp(56px,8vw,104px);
+  --fs-s: clamp(20px,2.4vw,28px);
+  --fs-p: clamp(13px,1.3vw,15px);
+  --fs-e: clamp(18px,2vw,24px);
+}
+
+/* DISPLAY / TITLE-FRAME — headline level, reused for every big statement scene */
+.display,.tf-head{font-family:'Montserrat',sans-serif;font-size:var(--fs-h);font-weight:600;line-height:1.04;letter-spacing:-.03em;color:#fff;text-align:center}
+.display .acc,.tf-head .acc,.tf-accent .acc,.ja-sub .acc{color:#DA5D37;text-shadow:0 0 20px rgba(217,92,54,.55)}
+.tf-eyebrow{font-family:'Inter',sans-serif;font-size:var(--fs-e);letter-spacing:5px;text-transform:uppercase;color:#DA5D37;font-weight:500;margin-bottom:14px;text-align:center}
+.tf-accent{font-family:'Montserrat',sans-serif;font-size:var(--fs-h);font-weight:300;line-height:1.06;letter-spacing:-.02em;color:#fff;text-align:center;margin-top:4px}
+.tf-sub{font-family:'Outfit',sans-serif;font-size:var(--fs-s);font-weight:300;color:#fff;text-align:center;line-height:1.5;margin-top:20px;max-width:780px}
+.sub{font-family:'Outfit',sans-serif;font-size:var(--fs-s);color:#fff;text-align:center;line-height:1.5;font-weight:400;max-width:840px}
+.eyebrow{font-family:'Inter',sans-serif;font-size:var(--fs-p);letter-spacing:5px;text-transform:uppercase;color:#DA5D37;margin-bottom:20px;font-weight:500}
+.label-sm{font-family:'Inter',sans-serif;font-size:var(--fs-p);letter-spacing:4px;text-transform:uppercase;color:#fff;font-weight:500}
+
+/* MOCKUP FRAME PERSISTENT LABEL (fallback — prefer #concept-morph below) */
+.ctx-label{position:absolute;top:3.5vw;left:50%;transform:translateX(-50%);font-family:'Inter',sans-serif;font-size:var(--fs-e);letter-spacing:5px;text-transform:uppercase;color:#DA5D37;font-weight:500;white-space:nowrap;opacity:0;transition:opacity .6s ease}
+
+/* CONCEPT MORPH — one persistent element per concept group: big/centered on the
+   concept's title scene, shrinks to the top label spot on its mockup scene(s)
+   without ever fading out. See "Concept morph" pattern in SKILL.md. */
+#concept-morph{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:'Montserrat',sans-serif;font-weight:600;font-size:var(--fs-h);color:#DA5D37;text-shadow:0 0 20px rgba(217,92,54,.55);white-space:nowrap;text-align:center;opacity:0;pointer-events:none;z-index:50;transition:top 1s cubic-bezier(.16,1,.3,1),transform 1s cubic-bezier(.16,1,.3,1),font-size 1s cubic-bezier(.16,1,.3,1),opacity .6s ease}
+
+/* ANIMATIONS — generic reveal classes, used on almost every scene */
+.sup{opacity:0;transform:translateY(48px);transition:opacity .7s ease,transform .75s cubic-bezier(.16,1,.3,1)}
+.sup.in{opacity:1;transform:translateY(0)}
+.fin{opacity:0;transition:opacity .75s ease}
+.fin.in{opacity:1}
+.d1{transition-delay:.12s!important}
+.d2{transition-delay:.28s!important}
+.d3{transition-delay:.44s!important}
+.d4{transition-delay:.60s!important}
+.d5{transition-delay:.76s!important}
+.sweep{width:0;height:1.5px;background:linear-gradient(90deg,transparent,#DA5D37,transparent);margin:32px auto;transition:width 1.8s cubic-bezier(.16,1,.3,1)}
+.sweep.go{width:60%}
+
+/* WORD STORM — scattered chip cascade + converging dotted lines (S2-style scene) */
+#word-storm{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:3}
+#storm-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+.storm-line{stroke:#DA5D37;stroke-width:.15;stroke-dasharray:.8 .8;fill:none;opacity:0;transition:opacity 1.2s ease}
+.storm-line.show{opacity:.35}
+.sc{position:absolute;font-family:'Outfit',sans-serif;font-weight:600;font-size:var(--fs-p);color:transparent;background:transparent;border:1px solid transparent;border-radius:9px;padding:10px 18px;white-space:nowrap;transition:color 1.1s ease,background 1.1s ease,border-color 1.1s ease;transform:translate(-50%,-50%) rotate(var(--rot))}
+.sc.on{color:#fff;background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.22)}
+.cage-tag{font-family:'Montserrat',sans-serif;font-size:var(--fs-h);font-weight:600;line-height:1.04;letter-spacing:-.03em;color:#DA5D37;text-shadow:0 0 20px rgba(217,92,54,.55);text-align:center;margin-top:20px}
+
+/* SPLIT-WORD REVEAL (e.g. "Just ask") */
+.ja-wrap{display:flex;align-items:baseline;gap:28px}
+.ja-l,.ja-r{font-family:'Montserrat',sans-serif;font-size:clamp(72px,11vw,148px);font-weight:600;letter-spacing:-.04em;color:#fff;transition:transform .85s cubic-bezier(.16,1,.3,1),opacity .85s ease}
+.ja-sub{font-family:'Montserrat',sans-serif;font-size:clamp(72px,11vw,148px);font-weight:600;letter-spacing:-.04em;color:#fff;text-align:center}
+.ja-l{transform:translateX(-160px);opacity:0}
+.ja-r{transform:translateX(160px);opacity:0}
+.ja-l.in,.ja-r.in{transform:translateX(0);opacity:1}
+
+/* CHAT SHELL — the "input → AI response" mockup used by every concept demo */
+.chat-shell{width:min(720px,92vw);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:22px;overflow:hidden}
+.chat-shell.wide{width:min(820px,94vw);min-height:460px;display:flex;flex-direction:column}
+.chat-shell.wide .cb{flex:1;display:flex;flex-direction:column;justify-content:center}
+.ch{position:relative;padding:13px 20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:9px}
+.cd{width:8px;height:8px;border-radius:50%}
+.cd.r{background:#ff5f57}.cd.y{background:#febc2e}.cd.g{background:#28c840}
+.ctitle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:'Inter',sans-serif;font-weight:500;font-size:var(--fs-p);color:#fff;letter-spacing:1px;white-space:nowrap}
+.cb{padding:22px}
+.inp-row{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:14px 18px;margin-bottom:18px}
+.inp-txt{font-family:'Outfit',sans-serif;font-size:var(--fs-p);color:#fff;flex:1;min-height:22px;line-height:1.5}
+.cur{display:inline-block;width:2px;height:18px;background:#DA5D37;margin-left:2px;animation:bl .8s step-end infinite;vertical-align:middle}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:0}}
+
+/* RESPONSE CARD — the "AI response" body. Default representation is .rr rows
+   (label left / value right); see SKILL.md + components.md for alternates
+   (checklist, boxed cards + CTA buttons, progress bars, file-upload chip). */
+.rc{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.11);border-radius:14px;padding:20px;opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s ease}
+.rc.show{opacity:1;transform:translateY(0)}
+.rtag{font-family:'Inter',sans-serif;font-size:var(--fs-p);letter-spacing:2px;text-transform:uppercase;color:#60A5FA;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.25);border-radius:4px;padding:4px 10px;margin-bottom:16px;font-weight:500;display:inline-block}
+.rr{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:var(--fs-p);font-family:'Outfit',sans-serif}
+.rr:last-child{border-bottom:none;padding-bottom:0}
+.rl{color:#fff}.rv{color:#fff;font-weight:600}
+.rv.g{color:#34d399}.rv.a{color:#fbbf24}.rv.t{color:#DA5D37}.rv.r{color:#F87171}.rv.i{color:#60A5FA}
+
+/* CTA BUTTONS — for response rows that need an action (Approve/Reject/etc) */
+.cta-row{display:flex;gap:8px;flex-shrink:0}
+.cta-btn{font-family:'Inter',sans-serif;font-weight:500;font-size:var(--fs-p);padding:6px 14px;border-radius:7px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;white-space:nowrap}
+.cta-btn.pri{background:rgba(218,93,55,.15);border-color:rgba(218,93,55,.4);color:#DA5D37}
+.cta-btn.rej{background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3);color:#F87171}
+.cta-btn.app{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.35);color:#34d399}
+.cta-btn.info{background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.35);color:#60A5FA}
+
+/* CLOSING / LOGO */
+.logo-wrap{opacity:0;transform:translateY(22px);transition:opacity 1.1s ease,transform 1.1s ease}
+.logo-wrap.show{opacity:1;transform:translateY(0)}
+.logo-tag{font-family:'Outfit',sans-serif;font-size:var(--fs-s);font-weight:300;color:#fff;line-height:1.5;margin-top:22px;opacity:0;transition:opacity 1.1s ease .55s;text-align:center}
+.logo-tag.show{opacity:1}
+
+/* CONTROLS — scrubber UI, hidden automatically by the record script */
+#controls{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;z-index:200;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.14);border-radius:40px;padding:8px 16px;backdrop-filter:blur(10px)}
+#controls button{width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s;flex-shrink:0}
+#controls button:hover{background:rgba(255,255,255,.18)}
+#btn-play{width:42px;height:42px;border-color:rgba(218,93,55,.6);background:rgba(218,93,55,.18)}
+#btn-play:hover{background:rgba(218,93,55,.32)}
+#scene-counter{font-family:'Outfit',sans-serif;font-size:12px;color:rgba(255,255,255,.55);min-width:44px;text-align:center;letter-spacing:.5px}
+#progress{position:fixed;bottom:0;left:0;height:2px;background:#DA5D37;transition:width .35s ease;z-index:100;opacity:.65}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="particles"></canvas>
+  <div id="vig"></div>
+  <div id="controls">
+    <button id="btn-prev" aria-label="Previous scene"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button id="btn-play" aria-label="Pause">
+      <svg id="icon-pause" width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="2" width="4" height="12" rx="1" fill="#fff"/><rect x="9" y="2" width="4" height="12" rx="1" fill="#fff"/></svg>
+      <svg id="icon-play" width="16" height="16" viewBox="0 0 16 16" fill="none" style="display:none"><path d="M4 2l10 6-10 6V2z" fill="#fff"/></svg>
+    </button>
+    <button id="btn-next" aria-label="Next scene"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <span id="scene-counter"></span>
+  </div>
+  <div id="progress"></div>
+  <div id="concept-morph">[Concept]</div>
+
+  <!-- S1: OPENING HOOK — headline + accent line + slow one-phrase-at-a-time subline -->
+  <div class="scene" id="s1">
+    <div class="tf-head sup d1">[Opening headline line one]</div>
+    <div class="tf-accent sup d2"><span class="acc">[accent phrase]</span></div>
+    <div class="tf-sub" style="margin-top:20px">
+      <span class="sup" style="display:inline-block;transition-delay:1s">[Phrase one.]</span>
+      <span class="sup" style="display:inline-block;transition-delay:2.1s"> [Phrase two.]</span>
+      <span class="sup" style="display:inline-block;transition-delay:3.2s"> [Phrase three.]</span>
+    </div>
+  </div>
+
+  <!-- S2: WORD STORM — scattered chips cascade in, then a statement lands after they finish.
+       Chip words + count are set in the WORDS array in the script below. -->
+  <div class="scene" id="s2">
+    <svg id="storm-lines" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+    <div id="word-storm"></div>
+    <div class="cage-tag sup" style="transition-delay:3.5s">[The reframe statement.]</div>
+  </div>
+
+  <!-- S3: TWO-LINE REVEAL — first line settles, THEN (after a real pause) the punchline lands -->
+  <div class="scene" id="s3">
+    <div class="display sup" style="color:#fff">[Setup line, no accent]</div>
+    <div class="display sup" style="transition-delay:2s">[Punchline with <span class="acc">accent word.</span>]</div>
+  </div>
+
+  <!-- S4: "WHAT IF" beat -->
+  <div class="scene" id="s4">
+    <div class="display sup">What if</div>
+    <div class="display sup d1">[the rest of the question]<br><span class="acc">[key phrase?]</span></div>
+    <div class="sweep" id="sweep"></div>
+  </div>
+
+  <!-- S5: SPLIT-WORD BEAT — two words fly in from opposite sides, then a sub-line lands -->
+  <div class="scene" id="s5">
+    <div class="ja-wrap">
+      <div class="ja-l">[Word]</div>
+      <div class="ja-r">[word]</div>
+    </div>
+    <div class="ja-sub sup" style="margin-top:24px;transition-delay:2s">[closing phrase with <span class="acc">accent</span>.]</div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       CONCEPT DEMO PATTERN — repeat this pair for each concept ("It knows" /
+       "It thinks" / "It acts" style). See SKILL.md § Concept morph pattern.
+       - Title scene: EMPTY <div>, all visual comes from #concept-morph (big+centered)
+       - Mockup scene: chat-shell with input (typed) → AI response (revealed after a pause)
+       #concept-morph shrinks from big/centered to small/top-left between the two,
+       and stays in its small state across every mockup scene in the same concept
+       group (add more mockup scene ids to SMALL_SCENES for extra examples).
+       ═══════════════════════════════════════════════════════════════════ -->
+
+  <!-- S6: CONCEPT TITLE (visual shown entirely by #concept-morph) -->
+  <div class="scene" id="s6"></div>
+
+  <!-- S6b: CONCEPT MOCKUP — input types out, then response reveals -->
+  <div class="scene" id="s6b">
+    <div style="transform:scale(1.5);transform-origin:center center">
+      <div class="chat-shell wide sup">
+        <div class="ch"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div><span class="ctitle">TranZact AI</span></div>
+        <div class="cb">
+          <div class="inp-row"><div class="inp-txt"><span id="tt6"></span><span class="cur"></span></div></div>
+          <div class="rc" id="rc6">
+            <div class="rtag">&#10022; AI response</div>
+            <div class="rr"><span class="rl">[Row label]</span><span class="rv t">[Value]</span></div>
+            <div class="rr"><span class="rl">[Row label]</span><span class="rv">[Value]</span></div>
+            <div class="rr"><span class="rl">[Row label]</span><span class="rv g">[Value]</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ end concept-demo pattern — duplicate S6/S6b as S7/S7b (new concept-morph
+       group) or as more S6b-style mockups under the SAME concept for extra examples ═══ -->
+
+  <!-- S14: CLOSING STATEMENT — two equal-weight lines, one accented word+period -->
+  <div class="scene" id="s14">
+    <div class="tf-head sup d1">[Closing line one.]</div>
+    <div class="tf-head sup d2">[Closing line two with <span class="acc">accent.</span>]</div>
+  </div>
+
+  <!-- S17: LOGO OUTRO — swap in the real S3-hosted Logo_Dark.svg / Logo_Light.svg URL -->
+  <div class="scene" id="s17">
+    <canvas id="ai-bg-cv" style="position:absolute;inset:0;width:100%;height:100%;z-index:-1"></canvas>
+    <div class="logo-wrap" id="lw">
+      <img src="https://tranzact-data.s3.ap-south-1.amazonaws.com/Logo_Light.svg" alt="TranZact" style="height:72px" onerror="this.style.display='none';document.getElementById('lfb').style.display='block'">
+      <div id="lfb" style="display:none;font-family:'Montserrat',sans-serif;font-size:var(--fs-h);font-weight:600;color:#fff;letter-spacing:-.025em;text-align:center">Tran<span style="color:#DA5D37">Z</span>act</div>
+    </div>
+    <div class="logo-tag" id="ltag">[Closing tagline.]</div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   SCENES — one entry per scene id, in playback order. `dur` is milliseconds
+   this scene stays on screen. window.__deckDuration (sum of all `dur`) is
+   read by scripts/record-scene-deck.ts to auto-detect recording length —
+   don't remove that line below.
+   ═══════════════════════════════════════════════════════════════════════ */
+const SCENES=[
+  {id:'s1',  dur:7000},
+  {id:'s2',  dur:7000},
+  {id:'s3',  dur:6000},
+  {id:'s4',  dur:6000},
+  {id:'s5',  dur:7000},
+  {id:'s6',  dur:2250},
+  {id:'s6b', dur:8500},
+  {id:'s14', dur:7500},
+  {id:'s17', dur:8000},
+];
+const TOTAL=SCENES.reduce((a,s)=>a+s.dur,0);
+window.__deckDuration=TOTAL;
+let cur=0,elapsed=0,last=null;
+const progressEl=document.getElementById('progress');
+
+/* PARTICLES — ambient orange dot drift, always running behind every scene */
+const pCv=document.getElementById('particles');
+const pCx=pCv.getContext('2d');
+let pts=[];
+function rzPts(){pCv.width=innerWidth;pCv.height=innerHeight;}
+rzPts();addEventListener('resize',rzPts);
+for(let i=0;i<80;i++)pts.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*1.3+.3,vx:(Math.random()-.5)*.16,vy:(Math.random()-.5)*.16,a:Math.random()*.3+.04});
+(function ap(){pCx.clearRect(0,0,pCv.width,pCv.height);for(const p of pts){p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=pCv.width;if(p.x>pCv.width)p.x=0;if(p.y<0)p.y=pCv.height;if(p.y>pCv.height)p.y=0;pCx.beginPath();pCx.arc(p.x,p.y,p.r,0,Math.PI*2);pCx.fillStyle=`rgba(218,93,55,${p.a})`;pCx.fill();}requestAnimationFrame(ap);})();
+
+/* WORD STORM — edit this list for S2's scattered chips (any length works;
+   the perimeter-grid layout below auto-sizes to fit them without overlap) */
+const WORDS=['Word one','Word two','Word three','Word four','Word five','Word six','Word seven','Word eight','Word nine','Word ten','Word eleven','Word twelve'];
+const stormEl=document.getElementById('word-storm');
+const linesEl=document.getElementById('storm-lines');
+const sCards=[];
+const sLines=[];
+
+/* non-overlapping perimeter-grid slots: chips sit in a ring of grid cells
+   around the edges, centre reserved for the cage-tag line */
+function perimeterSlots(n){
+  let cols=6,rows=5;
+  const count=(c,r)=>c*2+r*2-4;
+  while(count(cols,rows)<n){cols++;rows++;}
+  const cells=[];
+  for(let c=0;c<cols;c++)for(let r=0;r<rows;r++){
+    if(c===0||c===cols-1||r===0||r===rows-1)cells.push({c,r});
+  }
+  for(let i=cells.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cells[i],cells[j]]=[cells[j],cells[i]];}
+  return{cells,cols,rows};
+}
+const{cells,cols,rows}=perimeterSlots(WORDS.length);
+const cellW=100/cols,cellH=100/rows;
+
+WORDS.forEach((w,i)=>{
+  const slot=cells[i];
+  const cx=slot.c*cellW+cellW/2+(Math.random()-.5)*cellW*0.4;
+  const cy=slot.r*cellH+cellH/2+(Math.random()-.5)*cellH*0.4;
+  const rot=(Math.random()-.5)*20;
+
+  const el=document.createElement('div');
+  el.className='sc';
+  el.style.cssText=`left:${cx}%;top:${cy}%;--rot:${rot}deg`;
+  el.textContent=w;
+  stormEl.appendChild(el);
+  sCards.push(el);
+
+  const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+  line.setAttribute('x1',cx);line.setAttribute('y1',cy);
+  line.setAttribute('x2',50);line.setAttribute('y2',50);
+  line.setAttribute('class','storm-line');
+  linesEl.appendChild(line);
+  sLines.push(line);
+});
+
+/* AI NETWORK BG — S17 closing logo, drifting connected nodes ("powered by AI") */
+let aiBgAF=null;
+const aiNodes=[];
+function initAiNodes(W,H){
+  aiNodes.length=0;
+  for(let i=0;i<26;i++){
+    aiNodes.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25});
+  }
+}
+function drawAiBg(){
+  const cv=document.getElementById('ai-bg-cv');
+  if(!cv||!document.getElementById('s17').classList.contains('active')){aiBgAF=null;return;}
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;initAiNodes(W,H);}
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  aiNodes.forEach(n=>{
+    n.x+=n.vx;n.y+=n.vy;
+    if(n.x<0)n.x=W;if(n.x>W)n.x=0;
+    if(n.y<0)n.y=H;if(n.y>H)n.y=0;
+  });
+  for(let i=0;i<aiNodes.length;i++){
+    for(let j=i+1;j<aiNodes.length;j++){
+      const a=aiNodes[i],b=aiNodes[j];
+      const dx=a.x-b.x,dy=a.y-b.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<140){
+        const op=(1-dist/140)*.32;
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+        ctx.strokeStyle=`rgba(218,93,55,${op})`;ctx.lineWidth=1;ctx.stroke();
+      }
+    }
+    ctx.beginPath();ctx.arc(aiNodes[i].x,aiNodes[i].y,1.8,0,Math.PI*2);
+    ctx.fillStyle='rgba(218,93,55,.5)';ctx.fill();
+  }
+  aiBgAF=requestAnimationFrame(drawAiBg);
+}
+
+/* TYPING — used by every concept-demo input row */
+function type(el,text,speed=36){
+  return new Promise(r=>{let i=0;el.textContent='';const t=setInterval(()=>{el.textContent=text.slice(0,++i);if(i>=text.length){clearInterval(t);r();}},speed);});
+}
+
+/* ENTER */
+function enter(id){
+  const el=document.getElementById(id);if(!el)return;
+  setTimeout(()=>el.querySelectorAll('.sup').forEach(e=>e.classList.add('in')),80);
+  setTimeout(()=>el.querySelectorAll('.fin').forEach(e=>e.classList.add('in')),100);
+
+  const ctxEl=document.getElementById('ctx'+id.replace('s',''));
+  if(ctxEl) setTimeout(()=>ctxEl.style.opacity='1',200);
+
+  /* CONCEPT MORPH — add one BIG_SCENES entry + one-or-more SMALL_SCENES entries
+     per concept group. Same text across a group = seamless morph; different
+     text between groups = clean fade out/in. See SKILL.md for the full rule. */
+  const morph=document.getElementById('concept-morph');
+  const BIG_SCENES={s6:'Concept'};
+  const SMALL_SCENES={s6b:'Concept'};
+  if(BIG_SCENES[id]){
+    morph.textContent=BIG_SCENES[id];
+    morph.style.opacity='1';
+    morph.style.top='50%';
+    morph.style.fontSize='var(--fs-h)';
+    morph.style.transform='translate(-50%,-50%)';
+  }else if(SMALL_SCENES[id]){
+    morph.textContent=SMALL_SCENES[id];
+    morph.style.opacity='1';
+    morph.style.top='3.5vw';
+    morph.style.fontSize='var(--fs-e)';
+    morph.style.transform='translate(-50%,0)';
+  }else{
+    morph.style.opacity='0';
+  }
+
+  if(id==='s2'){
+    sCards.forEach((c,i)=>setTimeout(()=>c.classList.add('on'),150+i*110));
+    sLines.forEach((l,i)=>setTimeout(()=>l.classList.add('show'),150+i*110));
+  }
+  if(id==='s4'){
+    setTimeout(()=>document.getElementById('sweep').classList.add('go'),1000);
+  }
+  if(id==='s5'){
+    setTimeout(()=>{document.querySelector('.ja-l').classList.add('in');document.querySelector('.ja-r').classList.add('in');},260);
+  }
+  if(id==='s6b'){
+    setTimeout(async()=>{
+      await type(document.getElementById('tt6'),'[Typed question for this concept]',55);
+      setTimeout(()=>document.getElementById('rc6').classList.add('show'),1500);
+    },400);
+  }
+  if(id==='s17'){
+    setTimeout(()=>{document.getElementById('lw').classList.add('show');document.getElementById('ltag').classList.add('show');},350);
+    drawAiBg();
+  }
+}
+
+/* LEAVE — always clear typed text + hide response cards, or the next visit
+   will flash the fully-revealed state before re-typing (see SKILL.md pitfall) */
+function leave(id){
+  const el=document.getElementById(id);if(!el)return;
+  el.querySelectorAll('.sup').forEach(e=>e.classList.remove('in'));
+  el.querySelectorAll('.fin').forEach(e=>e.classList.remove('in'));
+  const ctxEl=document.getElementById('ctx'+id.replace('s',''));
+  if(ctxEl) ctxEl.style.opacity='0';
+  if(id==='s2'){sCards.forEach(c=>c.classList.remove('on'));sLines.forEach(l=>l.classList.remove('show'));}
+  if(id==='s4')document.getElementById('sweep').classList.remove('go');
+  if(id==='s5'){document.querySelector('.ja-l').classList.remove('in');document.querySelector('.ja-r').classList.remove('in');}
+  if(id==='s6b'){document.getElementById('rc6').classList.remove('show');document.getElementById('tt6').textContent='';}
+  if(id==='s17'){const lw=document.getElementById('lw');if(lw)lw.classList.remove('show');const lt=document.getElementById('ltag');if(lt)lt.classList.remove('show');if(aiBgAF){cancelAnimationFrame(aiBgAF);aiBgAF=null;}}
+}
+
+/* MAIN LOOP — scene-advance + scrubber wiring, no need to touch this */
+let paused=false;
+function updateCounter(){
+  const el=document.getElementById('scene-counter');
+  if(el) el.textContent=(cur+1)+' / '+SCENES.length;
+}
+function jumpTo(i){
+  leave(SCENES[cur].id);
+  document.getElementById(SCENES[cur].id).classList.remove('active');
+  cur=i;
+  let acc=0;
+  for(let j=0;j<cur;j++) acc+=SCENES[j].dur;
+  elapsed=acc;
+  document.getElementById(SCENES[cur].id).classList.add('active');
+  enter(SCENES[cur].id);
+  last=null;
+  updateCounter();
+}
+function tick(now){
+  if(last===null) last=now;
+  const dt=now-last; last=now;
+  if(!paused){
+    elapsed+=dt;
+    progressEl.style.width=Math.min(elapsed/TOTAL*100,100)+'%';
+    let acc=0;
+    for(let i=0;i<SCENES.length;i++){
+      acc+=SCENES[i].dur;
+      if(elapsed<=acc){
+        if(cur!==i){
+          const prevId=SCENES[cur].id;
+          leave(prevId);
+          document.getElementById(prevId).classList.remove('active');
+          cur=i;
+          const nextEl=document.getElementById(SCENES[cur].id);
+          nextEl.classList.add('active');
+          enter(SCENES[cur].id);
+          updateCounter();
+        }
+        break;
+      }
+    }
+    if(elapsed>=TOTAL){
+      elapsed=0;
+      leave(SCENES[cur].id);
+      document.getElementById(SCENES[cur].id).classList.remove('active');
+      cur=0;
+      document.getElementById(SCENES[0].id).classList.add('active');
+      enter(SCENES[0].id);
+      updateCounter();
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+document.getElementById('btn-play').addEventListener('click',()=>{
+  paused=!paused;
+  last=null;
+  document.getElementById('icon-pause').style.display=paused?'none':'block';
+  document.getElementById('icon-play').style.display=paused?'block':'none';
+  document.getElementById('btn-play').setAttribute('aria-label',paused?'Play':'Pause');
+});
+document.getElementById('btn-prev').addEventListener('click',()=>{
+  jumpTo(cur===0 ? SCENES.length-1 : cur-1);
+});
+document.getElementById('btn-next').addEventListener('click',()=>{
+  jumpTo(cur===SCENES.length-1 ? 0 : cur+1);
+});
+
+enter(SCENES[0].id);
+document.getElementById(SCENES[0].id).classList.add('active');
+updateCounter();
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
