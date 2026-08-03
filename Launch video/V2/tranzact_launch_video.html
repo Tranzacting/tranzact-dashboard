@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TranZact — The AI-Run Factory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600&family=Inter:wght@500;600&family=Outfit:wght@400;500;600&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#0E0F0C;overflow:hidden;font-family:'Outfit',sans-serif}
+#stage{position:relative;width:100vw;height:100vh;overflow:hidden;background:#0E0F0C}
+.scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5vw 7vw;opacity:0;pointer-events:none;transition:opacity .48s ease;z-index:2;visibility:hidden}
+.scene.active{opacity:1;pointer-events:auto;visibility:visible}
+#particles{position:absolute;inset:0;pointer-events:none;z-index:0}
+#vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 30%,rgba(0,0,0,.8) 100%);pointer-events:none;z-index:1}
+
+/* ── TYPE SCALE — 3 levels, applied everywhere ─────────────────
+   --fs-h   headline    Montserrat 600  used for .display and hero words
+   --fs-s   sub-text    Outfit 400/600  used for .sub, card body, input text
+   --fs-p   para/label  Inter 500 (labels) / Outfit 400/600 (body) — card metadata, tags, eyebrows
+   ──────────────────────────────────────────────────────────── */
+:root{
+  --fs-h: clamp(56px,8vw,104px);
+  --fs-s: clamp(20px,2.4vw,28px);
+  --fs-p: clamp(13px,1.3vw,15px);
+  --fs-e: clamp(18px,2vw,24px);
+}
+
+/* DISPLAY — headline level */
+.display{font-family:'Montserrat',sans-serif;font-size:var(--fs-h);font-weight:600;line-height:1.04;letter-spacing:-.03em;color:#fff;text-align:center}
+.display .acc{color:#DA5D37;text-shadow:0 0 20px rgba(217,92,54,.55)}
+
+/* SUB — sub-text level */
+.sub{font-family:'Outfit',sans-serif;font-size:var(--fs-s);color:#fff;text-align:center;line-height:1.5;font-weight:400;max-width:840px}
+
+/* EYEBROW / LABEL — para level, spaced caps */
+.eyebrow{font-family:'Inter',sans-serif;font-size:var(--fs-p);letter-spacing:5px;text-transform:uppercase;color:#DA5D37;margin-bottom:20px;font-weight:500}
+.label-sm{font-family:'Inter',sans-serif;font-size:var(--fs-p);letter-spacing:4px;text-transform:uppercase;color:#fff;font-weight:500}
+
+/* ANIMATIONS */
+.sup{opacity:0;transform:translateY(48px);transition:opacity .7s ease,transform .75s cubic-bezier(.16,1,.3,1)}
+.sup.in{opacity:1;transform:translateY(0)}
+.fin{opacity:0;transition:opacity .75s ease}
+.fin.in{opacity:1}
+.d1{transition-delay:.12s!important}
+.d2{transition-delay:.28s!important}
+.d3{transition-delay:.44s!important}
+.d4{transition-delay:.60s!important}
+.d5{transition-delay:.76s!important}
+
+/* WORD STORM */
+#word-storm{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:3}
+#storm-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+.storm-line{stroke:#DA5D37;stroke-width:.15;stroke-dasharray:.8 .8;fill:none;opacity:0;transition:opacity 1.2s ease}
+.storm-line.show{opacity:.35}
+.sc{position:absolute;font-family:'Outfit',sans-serif;font-weight:600;font-size:var(--fs-p);color:transparent;background:transparent;border:1px solid transparent;border-radius:9px;padding:10px 18px;white-space:nowrap;transition:color 1.1s ease,background 1.1s ease,border-color 1.1s ease;transform:translate(-50%,-50%) rotate(var(--rot))}
+.sc.on{color:#fff;background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.22)}
+.owner-center{position:relative;z-index:10;font-family:'Montserrat',sans-serif;font-size:clamp(100px,16vw,210px);font-weight:600;letter-spacing:-.05em;color:#fff;text-align:center;line-height:1;text-shadow:0 0 80px rgba(0,0,0,1),0 0 40px rgba(0,0,0,1)}
+.cage-tag{font-family:'Montserrat',sans-serif;font-size:var(--fs-h);font-weight:600;line-height:1.04;letter-spacing:-.03em;color:#DA5D37;text-shadow:0 0 20px rgba(217,92,54,.55);text-align:center;margin-top:20px}
+.sweep{width:0;height:1.5px;background:linear-gradient(90deg,transparent,#DA5D37,transparent);margin:32px auto;transition:width 1.8s cubic-bezier(.16,1,.3,1)}
+.sweep.go{width:60%}
+
+/* JUST ASK */
+.ja-wrap{display:flex;align-items:baseline;gap:28px}
+.ja-l,.ja-r{font-family:'Montserrat',sans-serif;font-size:clamp(72px,11vw,148px);font-weight:600;letter-spacing:-.04em;color:#fff;transition:transform .85s cubic-bezier(.16,1,.3,1),opacity .85s ease}
+.ja-sub{font-family:'Montserrat',sans-serif;font-size:clamp(72px,11vw,148px);font-weight:600;letter-spacing:-.04em;color:#fff;text-align:center}
+.ja-sub .acc{color:#DA5D37;text-shadow:0 0 20px rgba(217,92,54,.55)}
+.ja-l{transform:translateX(-160px);opacity:0}
+.ja-r{transform:translateX(160px);opacity:0}
+.ja-l.in,.ja-r.in{transform:translateX(0);opacity:1}
+
+/* CHAT SHELL */
+.chat-shell{width:min(720px,92vw);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:22px;overflow:hidden}
+.chat-shell.wide{width:min(820px,94vw);min-height:460px;display:flex;flex-direction:column}
+.chat-shell.wide .cb{flex:1;display:flex;flex-direction:column;justify-content:center}
+.chat-shell.task{width:100%}
+.ch{position:relative;padding:13px 20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:9px}
+.cd{width:8px;height:8px;border-radius:50%}
+.cd.r{background:#ff5f57}.cd.y{background:#febc2e}.cd.g{background:#28c840}
+.ctitle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:'Inter',sans-serif;font-weight:500;font-size:var(--fs-p);color:#fff;letter-spacing:1px;white-space:nowrap}
+.cb{padding:22px}
+.inp-row{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:14px 18px;margin-bottom:18px}
+.inp-txt{font-family:'Outfit',sans-serif;font-size:var(--fs-p);color:#fff;flex:1;min-height:22px;line-height:1.5}
+.cur{display:inline-block;width:2px;height:18px;background:#DA5D37;margin-left:2px;animation:bl .8s step-end infinite;vertical-align:middle}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:0}}
+
+/* RESPONSE CARD */
+.rc{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.11);border-radius:14px;padding:20px;opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s ease}
+.rc.show{opacity:1;transform:translateY(0)}
+.rtag{font-family:'Inter',sans-serif;font-size:var(--fs-p);letter-spacing:2px;text-transform:uppercase;color:#60A5FA;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.25);border-radius:4px;padding:4px 10px;margin-bottom:16px;font-weight:500;display:inline-block}
+.rr{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:var(--fs-p);font-family:'Outfit',sans-serif}
+.rr:last-child{border-bottom:none;padding-bottom:0}
+.rl{color:#fff}.rv{color:#fff;font-weight:600}
+.rv.g{color:#34d399}.rv.a{color:#fbbf24}.rv.t{color:#DA5D37}.rv.r{color:#F87171}.rv.i{color:#60A5FA}
+
+/* STOCK WAREHOUSE BARS */
+.whr{display:flex;align-items:center;gap:14px;padding:10px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);margin-bottom:8px;opacity:0;transform:translateY(12px);transition:opacity .4s ease,transform .4s ease}
+.whr:last-child{margin-bottom:0}
+.whr.show{opacity:1;transform:translateY(0)}
+.whr:last-child{margin-bottom:0}
+.whn{flex:1;font-size:var(--fs-p);font-family:'Outfit',sans-serif;color:#fff}
+.whb{flex:2;height:7px;background:rgba(255,255,255,.09);border-radius:4px;overflow:hidden}
+.whbf{height:100%;border-radius:4px;background:#DA5D37;width:0;transition:width 1.1s cubic-bezier(.16,1,.3,1)}
+.whq{font-size:var(--fs-p);font-weight:600;color:#fff;font-family:'Outfit',sans-serif;min-width:70px;text-align:right}
+.slow-badge{display:inline-flex;align-items:center;gap:7px;font-size:var(--fs-p);font-family:'Outfit',sans-serif;color:#F87171;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.22);border-radius:8px;padding:8px 14px;opacity:0;transition:opacity .5s ease .85s}
+.slow-badge.show{opacity:1}
+.cta-row{display:flex;gap:8px;flex-shrink:0}
+.cta-btn{font-family:'Inter',sans-serif;font-weight:500;font-size:var(--fs-p);padding:6px 14px;border-radius:7px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;white-space:nowrap}
+.cta-btn.pri{background:rgba(218,93,55,.15);border-color:rgba(218,93,55,.4);color:#DA5D37}
+.cta-btn.rej{background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3);color:#F87171}
+.cta-btn.app{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.35);color:#34d399}
+.cta-btn.info{background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.35);color:#60A5FA}
+
+/* BATCH TRACE */
+
+/* INVOICE SNAP */
+.snap-wrap{width:min(720px,94vw);display:flex;gap:16px;align-items:stretch}
+.inv-card{flex:1;background:rgba(255,255,255,.97);border-radius:18px;padding:22px;color:#0E0F0C}
+.inv-hdr{font-size:var(--fs-p);letter-spacing:2px;text-transform:uppercase;color:#595B58;margin-bottom:10px;font-family:'Inter',sans-serif;font-weight:500}
+.inv-name{font-size:var(--fs-p);font-weight:600;color:#0E0F0C;font-family:'Outfit',sans-serif;margin-bottom:2px}
+.inv-meta{font-size:var(--fs-p);color:#595B58;font-family:'Outfit',sans-serif;margin-bottom:14px}
+.snap-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;flex-shrink:0;padding:0 6px}
+.res-card{flex:1;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.28);border-radius:18px;padding:22px;opacity:0;transform:translateX(28px);transition:opacity .6s ease,transform .6s ease}
+.res-card.show{opacity:1;transform:translateX(0)}
+.res-hdr{font-size:var(--fs-p);letter-spacing:2px;text-transform:uppercase;color:#34d399;margin-bottom:16px;font-family:'Inter',sans-serif;font-weight:500}
+.res-row{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:var(--fs-p);font-family:'Outfit',sans-serif;color:#fff;border-bottom:1px solid rgba(255,255,255,.07)}
+.res-row:last-child{border-bottom:none}
+.chk{width:20px;height:20px;border-radius:50%;background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.4);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chk svg{width:10px;height:10px;stroke:#34d399;fill:none;stroke-width:2.5}
+.trow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08);opacity:0;transform:translateX(-12px);transition:opacity .4s ease,transform .4s ease}
+.trow:last-child{border-bottom:none}
+.trow.lit{opacity:1;transform:translateX(0)}
+.trow .tl{flex:1;font-family:'Outfit',sans-serif;font-size:var(--fs-p);color:#fff}
+.trow .td{font-family:'Outfit',sans-serif;font-size:var(--fs-p);color:rgba(255,255,255,.6);white-space:nowrap}
+
+/* UPLOAD CHIP */
+.file-chip{display:flex;align-items:center;gap:10px}
+.upicon{width:30px;height:30px;background:#DA5D37;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0;transform:scale(.6);transition:opacity .4s ease,transform .4s ease}
+.upicon.show{opacity:1;transform:scale(1)}
+.file-name{font-family:'Outfit',sans-serif;font-size:var(--fs-p);color:#fff;opacity:0;transition:opacity .4s ease}
+.file-name.show{opacity:1}
+.up-bar{width:110px;height:3px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;opacity:0;transition:opacity .3s ease}
+.up-bar.show{opacity:1}
+.up-bar-fill{height:100%;width:0;background:#DA5D37;border-radius:2px;transition:width .9s cubic-bezier(.4,0,.2,1)}
+
+/* FIFO */
+.fifo-wrap{width:min(680px,92vw)}
+.fr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);margin-bottom:10px;opacity:0;transform:translateY(12px);transition:opacity .4s ease,transform .4s ease;font-family:'Outfit',sans-serif;font-size:var(--fs-p)}
+.fr.show{opacity:1;transform:translateY(0)}
+.fr.done{border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.05)}
+.fi{color:#fff;font-size:var(--fs-p)}.fa{font-size:var(--fs-p);color:#fff;margin-top:2px}
+.famt{font-weight:600;color:#fff;font-size:var(--fs-p)}
+.fst{font-size:var(--fs-p);font-family:'Inter',sans-serif;font-weight:500;padding:4px 10px;border-radius:6px}
+.fst.p{background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.25)}
+.fst.pt{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.25)}
+.ftot{display:flex;justify-content:space-between;padding:14px 18px;border-radius:12px;border:1px solid rgba(218,93,55,.35);background:rgba(218,93,55,.08);font-family:'Outfit',sans-serif;font-size:var(--fs-p);font-weight:600;margin-top:4px;opacity:0;transition:opacity .5s ease .5s}
+.ftot.show{opacity:1}
+
+/* APPROVALS */
+.ap-wrap{width:min(700px,94vw);display:flex;flex-direction:column;gap:8px}
+.apr{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.11);border-radius:14px;padding:11px 16px;display:flex;align-items:center;gap:12px;opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s ease;margin-bottom:8px}
+.apr:last-child{margin-bottom:0}
+.apr.show{opacity:1;transform:translateY(0)}
+.fdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.fred{background:#F87171;box-shadow:0 0 10px rgba(248,113,113,.5)}
+.famb{background:#fbbf24;box-shadow:0 0 10px rgba(251,191,36,.5)}
+.fblu{background:#60A5FA;box-shadow:0 0 10px rgba(96,165,250,.5)}
+.albl{flex:1;font-size:var(--fs-p);font-family:'Outfit',sans-serif;color:#fff;line-height:1.35}
+.albl strong{font-weight:600;color:#fff;display:block;margin-bottom:2px;font-size:var(--fs-p)}
+.albl small{font-size:var(--fs-p);color:rgba(255,255,255,.55)}
+.abadge{font-size:var(--fs-p);font-family:'Inter',sans-serif;font-weight:500;padding:4px 11px;border-radius:6px;white-space:nowrap;flex-shrink:0}
+.anr{background:rgba(248,113,113,.12);color:#F87171;border:1px solid rgba(248,113,113,.2)}
+.aod{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.2)}
+.aro{background:rgba(96,165,250,.12);color:#60A5FA;border:1px solid rgba(96,165,250,.2)}
+
+/* TASK */
+.task-wrap{width:min(720px,92vw)}
+.task-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:20px 22px;opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease;margin-top:12px}
+.task-card.show{opacity:1;transform:translateY(0)}
+.tch{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.tav{width:40px;height:40px;border-radius:50%;background:rgba(218,93,55,.2);border:1px solid rgba(218,93,55,.45);display:flex;align-items:center;justify-content:center;font-size:var(--fs-p);font-weight:600;color:#DA5D37;font-family:'Outfit',sans-serif;flex-shrink:0}
+.tan{font-size:var(--fs-p);font-weight:600;color:#fff;font-family:'Outfit',sans-serif}
+.tad{font-size:var(--fs-p);color:#fff;font-family:'Outfit',sans-serif;margin-top:2px}
+.tcre{font-size:var(--fs-p);font-family:'Inter',sans-serif;padding:4px 11px;border-radius:6px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.28);color:#34d399;font-weight:500;margin-left:auto}
+.ttxt{font-size:var(--fs-p);font-family:'Outfit',sans-serif;color:#fff;line-height:1.55}
+.ttags{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap}
+.ttag{font-size:var(--fs-p);font-family:'Outfit',sans-serif;padding:4px 11px;border-radius:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#fff}
+.ttag.hi{background:rgba(218,93,55,.1);border-color:rgba(218,93,55,.35);color:#DA5D37}
+.notif{margin-top:12px;display:flex;align-items:center;gap:9px;font-size:var(--fs-p);font-family:'Outfit',sans-serif;color:#34d399;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.22);border-radius:9px;padding:9px 14px;opacity:0;transition:opacity .5s ease .75s}
+.notif.show{opacity:1}
+
+/* PILLARS / CONNECTION */
+.conn-wrap{width:min(820px,95vw);position:relative}
+.mod-row{display:flex;justify-content:space-between;align-items:center}
+.mod-box{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:22px 16px;text-align:center;opacity:0;transform:translateY(24px);transition:opacity .5s ease,transform .5s ease}
+.mod-box.show{opacity:1;transform:translateY(0)}
+.mod-icon{font-size:28px;margin-bottom:10px}
+.mod-name{font-size:var(--fs-p);letter-spacing:2px;text-transform:uppercase;color:#fff;font-family:'Inter',sans-serif;font-weight:500}
+.mod-sub{font-size:var(--fs-p);color:#fff;font-family:'Outfit',sans-serif;margin-top:6px;line-height:1.45}
+.conn-svg{position:absolute;top:50%;left:0;width:100%;pointer-events:none;transform:translateY(-50%)}
+.conn-line{stroke:#DA5D37;stroke-width:1.5;fill:none;stroke-dasharray:6 4;opacity:0;transition:opacity .6s ease}
+.conn-line.show{opacity:.6}
+
+/* OWNER'S FINAL CALL */
+.ofc-wrap{display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center}
+.ofc-badge{font-family:'Inter',sans-serif;font-size:var(--fs-p);letter-spacing:4px;text-transform:uppercase;color:#DA5D37;font-weight:500}
+.ofc-title{font-family:'Montserrat',sans-serif;font-size:var(--fs-h);font-weight:600;color:#fff;letter-spacing:-.03em;line-height:1.04;opacity:0;transform:scale(.85);transition:opacity .65s ease,transform .65s cubic-bezier(.16,1,.3,1)}
+.ofc-title.show{opacity:1;transform:scale(1)}
+.ofc-sub{font-family:'Outfit',sans-serif;font-size:var(--fs-s);color:#fff;line-height:1.55;opacity:0;transition:opacity .65s ease .3s;max-width:720px}
+.ofc-sub.show{opacity:1}
+.ofc-card{display:flex;gap:14px;opacity:0;transform:translateY(20px);transition:opacity .6s ease .5s,transform .6s ease .5s;margin-top:8px}
+.ofc-card.show{opacity:1;transform:translateY(0)}
+.ofc-pill{display:flex;align-items:center;gap:9px;padding:12px 20px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);font-family:'Outfit',sans-serif;font-size:var(--fs-p);color:#fff;font-weight:600}
+.ofc-pill .dot{width:9px;height:9px;border-radius:50%;background:#34d399;flex-shrink:0}
+.ofc-pill .dot.t{background:#DA5D37}
+
+/* HUB AND SPOKE */
+.hub-node{position:absolute;width:90px;height:90px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;opacity:0;transition:opacity .5s ease,transform .5s ease;z-index:2}
+.hub-node.show{opacity:1}
+.hn-icon{font-size:24px}
+.hn-label{font-family:'Inter',sans-serif;font-size:var(--fs-p);color:#fff;font-weight:500;letter-spacing:1px}
+
+/* FACTORY RUNS ITSELF */
+.frs-wrap{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px}
+
+/* LOGO */
+.logo-wrap{opacity:0;transform:translateY(22px);transition:opacity 1.1s ease,transform 1.1s ease}
+.logo-wrap.show{opacity:1;transform:translateY(0)}
+.logo-tag{font-family:'Outfit',sans-serif;font-size:var(--fs-s);font-weight:300;color:#fff;line-height:1.5;margin-top:22px;opacity:0;transition:opacity 1.1s ease .55s;text-align:center}
+.logo-tag.show{opacity:1}
+
+/* TITLE FRAME STRUCTURE */
+.tf-eyebrow{font-family:'Inter',sans-serif;font-size:var(--fs-e);letter-spacing:5px;text-transform:uppercase;color:#DA5D37;font-weight:500;margin-bottom:14px;text-align:center}
+.tf-head{font-family:'Montserrat',sans-serif;font-size:var(--fs-h);font-weight:600;line-height:1.04;letter-spacing:-.03em;color:#fff;text-align:center}
+.tf-head .acc{color:#DA5D37;text-shadow:0 0 20px rgba(217,92,54,.55)}
+/* accent line — lighter weight second line inside the headline slot */
+.tf-accent{font-family:'Montserrat',sans-serif;font-size:var(--fs-h);font-weight:300;line-height:1.06;letter-spacing:-.02em;color:#fff;text-align:center;margin-top:4px}
+.tf-accent .acc{color:#DA5D37;text-shadow:0 0 20px rgba(217,92,54,.55)}
+.tf-sub{font-family:'Outfit',sans-serif;font-size:var(--fs-s);font-weight:300;color:#fff;text-align:center;line-height:1.5;margin-top:20px;max-width:780px}
+
+/* MOCKUP FRAME PERSISTENT LABEL */
+.ctx-label{position:absolute;top:3.5vw;left:50%;transform:translateX(-50%);font-family:'Inter',sans-serif;font-size:var(--fs-e);letter-spacing:5px;text-transform:uppercase;color:#DA5D37;font-weight:500;white-space:nowrap;opacity:0;transition:opacity .6s ease}
+
+/* IT KNOWS — morphs from big/centered (S6) to small/top (S6b), one continuous element */
+#ik-morph{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:'Montserrat',sans-serif;font-weight:600;font-size:var(--fs-h);color:#DA5D37;text-shadow:0 0 20px rgba(217,92,54,.55);white-space:nowrap;text-align:center;opacity:0;pointer-events:none;z-index:50;transition:top 1s cubic-bezier(.16,1,.3,1),transform 1s cubic-bezier(.16,1,.3,1),font-size 1s cubic-bezier(.16,1,.3,1),opacity .6s ease}
+
+/* CONTROLS */
+#controls{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;z-index:200;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.14);border-radius:40px;padding:8px 16px;backdrop-filter:blur(10px)}
+#controls button{width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s;flex-shrink:0}
+#controls button:hover{background:rgba(255,255,255,.18)}
+#btn-play{width:42px;height:42px;border-color:rgba(218,93,55,.6);background:rgba(218,93,55,.18)}
+#btn-play:hover{background:rgba(218,93,55,.32)}
+#scene-counter{font-family:'Outfit',sans-serif;font-size:12px;color:rgba(255,255,255,.55);min-width:44px;text-align:center;letter-spacing:.5px}
+/* PROGRESS */
+#progress{position:fixed;bottom:0;left:0;height:2px;background:#DA5D37;transition:width .35s ease;z-index:100;opacity:.65}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="particles"></canvas>
+  <div id="vig"></div>
+  <div id="controls">
+    <button id="btn-prev" aria-label="Previous scene">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button id="btn-play" aria-label="Pause">
+      <svg id="icon-pause" width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="2" width="4" height="12" rx="1" fill="#fff"/><rect x="9" y="2" width="4" height="12" rx="1" fill="#fff"/></svg>
+      <svg id="icon-play" width="16" height="16" viewBox="0 0 16 16" fill="none" style="display:none"><path d="M4 2l10 6-10 6V2z" fill="#fff"/></svg>
+    </button>
+    <button id="btn-next" aria-label="Next scene">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <span id="scene-counter"></span>
+  </div>
+  <div id="progress"></div>
+  <div id="ik-morph">It knows</div>
+
+  <!-- S1: TITLE -->
+  <div class="scene" id="s1">
+    <div class="tf-head sup d1">Every factory runs on</div>
+    <div class="tf-accent sup d2"><span class="acc">one owner</span></div>
+    <div class="tf-sub" style="margin-top:20px">
+      <span class="sup" style="display:inline-block;transition-delay:1s">Fifty calls a day.</span>
+      <span class="sup" style="display:inline-block;transition-delay:2.1s"> Every decision, every fire.</span>
+      <span class="sup" style="display:inline-block;transition-delay:3.2s"> On the owner.</span>
+    </div>
+  </div>
+
+  <!-- S1b: SUBTEXT — removed, merged into S1 above -->
+
+  <!-- S2: WORD STORM -->
+  <div class="scene" id="s2">
+    <svg id="storm-lines" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+    <div id="word-storm"></div>
+    <div class="cage-tag sup" style="transition-delay:3.5s">The owner is the system.</div>
+  </div>
+
+  <!-- S3: CAGE -->
+  <div class="scene" id="s3">
+    <div class="display sup" style="color:#fff">The factory owner didn't build the business,</div>
+    <div class="display sup" style="transition-delay:2s">he built a <span class="acc">cage.</span></div>
+  </div>
+
+  <!-- S4: WHAT IF -->
+  <div class="scene" id="s4">
+    <div class="display sup">What if</div>
+    <div class="display sup d1">the factory could<br><span class="acc">run itself?</span></div>
+    <div class="sweep" id="sweep"></div>
+  </div>
+
+  <!-- S5: JUST ASK -->
+  <div class="scene" id="s5">
+    <div class="ja-wrap">
+      <div class="ja-l">Just</div>
+      <div class="ja-r">ask</div>
+    </div>
+    <div class="ja-sub sup" style="margin-top:24px;transition-delay:2s">in the <span class="acc">natural</span> language.</div>
+  </div>
+
+  <!-- S6: IT KNOWS TITLE (visual shown by the persistent #ik-morph element, see below) -->
+  <div class="scene" id="s6"></div>
+
+  <!-- S6b: ORDER STATUS MOCKUP (top label shown by the persistent #ik-morph element) -->
+  <div class="scene" id="s6b">
+    <div style="transform:scale(1.5);transform-origin:center center">
+      <div class="chat-shell wide sup">
+        <div class="ch"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div><span class="ctitle">TranZact AI</span></div>
+        <div class="cb">
+          <div class="inp-row"><div class="inp-txt"><span id="tt6"></span><span class="cur"></span></div></div>
+          <div class="rc" id="rc6">
+            <div class="rtag">&#10022; AI response</div>
+            <div class="rr"><span class="rl">Order SO-1023: Steel Pipes 40mm</span><span class="rv t">On track</span></div>
+            <div class="rr"><span class="rl">Production status</span><span class="rv">Dispatch ready</span></div>
+            <div class="rr"><span class="rl">Quantity pending dispatch</span><span class="rv">240 units</span></div>
+            <div class="rr"><span class="rl">Payment</span><span class="rv g">Cleared: Rs. 4.2L</span></div>
+            <div class="rr"><span class="rl">Expected delivery</span><span class="rv">Tomorrow, 11 AM</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S7b: BATCH TRACE MOCKUP -->
+  <div class="scene" id="s7b">
+    <div style="transform:scale(1.5);transform-origin:center center">
+      <div class="chat-shell wide sup">
+        <div class="ch"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div><span class="ctitle">TranZact AI</span></div>
+        <div class="cb">
+          <div class="inp-row"><div class="inp-txt"><span id="tt7"></span><span class="cur"></span></div></div>
+          <div class="rc" id="rc7">
+            <div class="rtag">&#10022; AI response</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <div>
+                <div style="font-family:'Inter',sans-serif;font-weight:500;font-size:var(--fs-p);letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:5px">Batch ID</div>
+                <div style="font-family:'Montserrat',sans-serif;font-size:var(--fs-s);font-weight:600;color:#DA5D37">BAR00089</div>
+              </div>
+              <div style="font-family:'Outfit',sans-serif;font-size:var(--fs-p);padding:7px 18px;border:1px solid rgba(52,211,153,.35);border-radius:8px;color:#34d399;background:rgba(52,211,153,.07);font-weight:600">Complete chain found</div>
+            </div>
+            <div style="display:flex;flex-direction:column">
+              <div class="trow" id="tn0"><div class="chk"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="tl">Raw material <span style="color:rgba(218,93,55,.9)">&middot; Tata Steel</span></span><span class="td">27 Jun</span></div>
+              <div class="trow" id="tn1"><div class="chk"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="tl">Production <span style="color:rgba(255,255,255,.55)">&middot; Line 3</span></span><span class="td">29 Jun</span></div>
+              <div class="trow" id="tn2"><div class="chk"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="tl">QC passed <span style="color:rgba(255,255,255,.55)">&middot; Inspector R</span></span><span class="td">1 Jul</span></div>
+              <div class="trow" id="tn3"><div class="chk"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="tl">Packaging <span style="color:rgba(255,255,255,.55)">&middot; Bay 4</span></span><span class="td">2 Jul</span></div>
+              <div class="trow" id="tn4"><div class="chk"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="tl">Dispatched <span style="color:rgba(255,255,255,.55)">&middot; SO-1023</span></span><span class="td">3 Jul</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S8: IT THINKS TITLE (visual shown by the persistent #ik-morph element) -->
+  <div class="scene" id="s8"></div>
+
+  <!-- S8b: PENDING APPROVALS MOCKUP ("It thinks" input+response pattern, matches S6b/S7b/S11b) -->
+  <div class="scene" id="s8b">
+    <div style="transform:scale(1.5);transform-origin:center center">
+      <div class="chat-shell wide sup">
+        <div class="ch"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div><span class="ctitle">TranZact AI</span></div>
+        <div class="cb">
+          <div class="inp-row"><div class="inp-txt"><span id="tt8"></span><span class="cur"></span></div></div>
+          <div class="rc" id="rc8">
+            <div class="rtag">&#10022; AI response</div>
+            <div class="apr" id="ap1">
+              <div class="fdot fred"></div>
+              <div class="albl"><strong>Sharma Steel: price jumped 14%</strong><small>Last PO: &#8377;500/kg &middot; New quote: &#8377;570/kg &middot; PO-883 pending your approval</small></div>
+              <span class="cta-row"><span class="cta-btn app">Approve</span><span class="cta-btn rej">Reject</span></span>
+            </div>
+            <div class="apr" id="ap2">
+              <div class="fdot famb"></div>
+              <div class="albl"><strong>Mehta Electricals: 52 days overdue</strong><small>Outstanding: &#8377;1,84,000 &middot; Last follow-up: 18 Jun &middot; Credit limit at 94%</small></div>
+              <span class="cta-row"><span class="cta-btn info">Send reminder</span></span>
+            </div>
+            <div class="apr" id="ap3">
+              <div class="fdot fblu"></div>
+              <div class="albl"><strong>MS Rods 12mm: 6 days to stockout</strong><small>Current: 820 kg &middot; Avg burn: 140 kg/day &middot; Preferred: Gupta Steel</small></div>
+              <span class="cta-row"><span class="cta-btn app">Reorder</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S9: IT ACTS TITLE (visual shown by the persistent #ik-morph element) -->
+  <div class="scene" id="s9"></div>
+
+  <!-- S9b: TASK CREATION MOCKUP ("It acts" input+response pattern, matches S6b/S7b; response components copied from S12b) -->
+  <div class="scene" id="s9b">
+    <div style="transform:scale(1.5);transform-origin:center center">
+      <div class="chat-shell wide sup">
+        <div class="ch"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div><span class="ctitle">TranZact AI</span></div>
+        <div class="cb">
+          <div class="inp-row"><div class="inp-txt"><span id="tt9"></span><span class="cur"></span></div></div>
+          <div class="rc" id="rc9">
+            <div class="rtag">&#10022; AI response</div>
+            <div class="tch">
+              <div class="tav">AB</div>
+              <div><div class="tan">Abhishek Bhatt</div><div class="tad">Due: tomorrow, end of day</div></div>
+              <div class="tcre">Task created</div>
+            </div>
+            <div class="ttxt">Create PO for Surya Supplier, steel rods as per last approved quote</div>
+            <div class="ttags"><span class="ttag hi">Purchase order</span><span class="ttag">Surya Supplier</span><span class="ttag">High priority</span></div>
+            <div class="notif" id="nb9">&#10003;&nbsp; Notification sent to Abhishek via WhatsApp</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S10b: IMAGE-UPLOAD INWARD MOCKUP ("It acts" input+response pattern, matches S6b/S7b) -->
+  <div class="scene" id="s10b">
+    <div style="transform:scale(1.5);transform-origin:center center">
+      <div class="chat-shell wide sup">
+        <div class="ch"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div><span class="ctitle">TranZact AI</span></div>
+        <div class="cb">
+          <div class="inp-row">
+            <div class="file-chip" id="filechip">
+              <div class="upicon" id="imgchip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
+              <div style="display:flex;flex-direction:column;gap:5px">
+                <span class="file-name">invoice_sharma.jpg</span>
+                <div class="up-bar" id="upbar"><div class="up-bar-fill" id="upfill"></div></div>
+              </div>
+            </div>
+            <div class="inp-txt"><span id="tt10"></span><span class="cur"></span></div>
+          </div>
+          <div class="rc" id="rc10">
+            <div class="rtag">&#10022; AI response</div>
+            <div class="rr"><span class="rl">Supplier identified</span><span class="rv">Sharma Steel Suppliers</span></div>
+            <div class="rr"><span class="rl">PO matched</span><span class="rv">PO-882, exact match</span></div>
+            <div class="rr"><span class="rl">Units extracted</span><span class="rv">240 + 80 units</span></div>
+            <div class="rr"><span class="rl">Payable logged</span><span class="rv">Rs. 2,59,600</span></div>
+            <div class="rr"><span class="rl">Inward entry</span><span class="rv g">Created, GRN draft ready</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S11b: STOCK MOCKUP ("It knows" input+response pattern, matches S6b/S7b) -->
+  <div class="scene" id="s11b">
+    <div style="transform:scale(1.5);transform-origin:center center">
+      <div class="chat-shell wide sup">
+        <div class="ch"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div><span class="ctitle">TranZact AI</span></div>
+        <div class="cb">
+          <div class="inp-row"><div class="inp-txt"><span id="tt11"></span><span class="cur"></span></div></div>
+          <div class="rc" id="rc11">
+            <div class="rtag">&#10022; AI response</div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+              <div>
+                <div style="font-family:'Inter',sans-serif;font-weight:500;font-size:var(--fs-p);letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:4px">MS Rods 12mm &mdash; total stock</div>
+                <div style="font-family:'Montserrat',sans-serif;font-size:clamp(30px,3.5vw,42px);font-weight:600;color:#fff;line-height:1">2,840 <span style="font-size:var(--fs-p);color:rgba(255,255,255,.7);font-family:'Outfit',sans-serif;font-weight:400">kg</span></div>
+              </div>
+              <div class="slow-badge" id="slb">&#9888;&#65039; Below reorder level</div>
+            </div>
+            <div class="whr" id="wh1"><span class="whn">Main warehouse &mdash; Pune</span><div class="whb"><div class="whbf" id="wb1" data-w="68"></div></div><span class="whq">1,920 kg</span></div>
+            <div class="whr" id="wh2"><span class="whn">Satellite store &mdash; Chakan</span><div class="whb"><div class="whbf" id="wb2" data-w="29"></div></div><span class="whq">820 kg</span></div>
+            <div class="whr" id="wh3"><span class="whn">Transit buffer &mdash; incoming</span><div class="whb"><div class="whbf" id="wb3" data-w="3.6"></div></div><span class="whq">100 kg</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S12: FIFO RECONCILE MOCKUP ("It acts" input+response pattern, matches Frame7 exactly) -->
+  <div class="scene" id="s12">
+    <div style="transform:scale(1.5);transform-origin:center center">
+      <div class="chat-shell wide sup">
+        <div class="ch"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div><span class="ctitle">TranZact AI</span></div>
+        <div class="cb">
+          <div class="inp-row"><div class="inp-txt"><span id="tt12r"></span><span class="cur"></span></div></div>
+          <div class="rc" id="rc12r">
+            <div class="rtag">&#10022; AI response</div>
+            <div class="rr"><span class="rl">INV-2024-0041 &middot; 62 days</span><span class="rv g">Paid: &#8377;1,20,000</span></div>
+            <div class="rr"><span class="rl">INV-2024-0057 &middot; 44 days</span><span class="rv g">Paid: &#8377;95,000</span></div>
+            <div class="rr"><span class="rl">INV-2024-0068 &middot; 31 days</span><span class="rv a">Partial: &#8377;85,000</span></div>
+            <div class="rr"><span class="rl">Payment applied</span><span class="rv t">&#8377;3,00,000 across 3 invoices</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- S14: OWNER'S FINAL CALL -->
+  <div class="scene" id="s14">
+    <div class="tf-head sup d1">The AI prepares.</div>
+    <div class="tf-head sup d2">The owner <span class="acc">decides.</span></div>
+  </div>
+
+  <!-- S15: FACTORY RUNS ITSELF -->
+  <div class="scene" id="s15">
+    <div class="tf-head sup d1">The factory runs itself.</div>
+    <div class="tf-head sup d2">The owner runs the <span class="acc">business.</span></div>
+  </div>
+
+  <!-- S17: LOGO -->
+  <div class="scene" id="s17">
+    <canvas id="ai-bg-cv" style="position:absolute;inset:0;width:100%;height:100%;z-index:-1"></canvas>
+    <div class="logo-wrap" id="lw">
+      <img src="https://tranzact-data.s3.ap-south-1.amazonaws.com/Logo_Light.svg" alt="TranZact" style="height:72px" onerror="this.style.display='none';document.getElementById('lfb').style.display='block'">
+      <div id="lfb" style="display:none;font-family:'Montserrat',sans-serif;font-size:var(--fs-h);font-weight:600;color:#fff;letter-spacing:-.025em;text-align:center">Tran<span style="color:#DA5D37">Z</span>act</div>
+    </div>
+    <div class="logo-tag" id="ltag">Born in India. Building for the world.</div>
+  </div>
+</div>
+
+<script>
+const SCENES=[
+  {id:'s1',  dur:7000},
+  {id:'s2',  dur:7000},
+  {id:'s3',  dur:6000},
+  {id:'s4',  dur:6000},
+  {id:'s5',  dur:7000},
+  {id:'s6',  dur:2250},
+  {id:'s6b', dur:8500},
+  {id:'s7b', dur:10000},
+  {id:'s11b',dur:9500},
+  {id:'s8',  dur:2250},
+  {id:'s8b', dur:7500},
+  {id:'s9',  dur:2250},
+  {id:'s9b', dur:9000},
+  {id:'s10b',dur:8500},
+  {id:'s12', dur:7500},
+  {id:'s14', dur:7500},
+  {id:'s15', dur:6500},
+  {id:'s17', dur:8000},
+];
+const TOTAL=SCENES.reduce((a,s)=>a+s.dur,0);
+window.__deckDuration=TOTAL;
+let cur=0,elapsed=0,last=null;
+const progressEl=document.getElementById('progress');
+
+/* PARTICLES */
+const pCv=document.getElementById('particles');
+const pCx=pCv.getContext('2d');
+let pts=[];
+function rzPts(){pCv.width=innerWidth;pCv.height=innerHeight;}
+rzPts();addEventListener('resize',rzPts);
+for(let i=0;i<80;i++)pts.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*1.3+.3,vx:(Math.random()-.5)*.16,vy:(Math.random()-.5)*.16,a:Math.random()*.3+.04});
+(function ap(){pCx.clearRect(0,0,pCv.width,pCv.height);for(const p of pts){p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=pCv.width;if(p.x>pCv.width)p.x=0;if(p.y<0)p.y=pCv.height;if(p.y>pCv.height)p.y=0;pCx.beginPath();pCx.arc(p.x,p.y,p.r,0,Math.PI*2);pCx.fillStyle=`rgba(218,93,55,${p.a})`;pCx.fill();}requestAnimationFrame(ap);})();
+
+/* WORD STORM */
+const WORDS=['Dispatch query','Quality check','Supplier call','Payment follow-up','Customer complaint','Machine downtime','New quotation','PO approval','Stock update','Order delay','Invoice mismatch','Raw material ETA','Production target','Packing issue','Delivery rescheduled','Approval stuck','Weekend follow-up','Daily target missed','Credit limit check','Vendor negotiation','Rate revision','GST filing','Labour shortage','Machine breakdown','Client escalation','Freight delay','Sample approval','Reorder alert'];
+const stormEl=document.getElementById('word-storm');
+const linesEl=document.getElementById('storm-lines');
+const sCards=[];
+const sLines=[];
+
+/* non-overlapping perimeter-grid slots: chips sit in a ring of grid cells
+   around the edges, centre reserved for the cage-tag line */
+function perimeterSlots(n){
+  let cols=6,rows=5;
+  const count=(c,r)=>c*2+r*2-4;
+  while(count(cols,rows)<n){cols++;rows++;}
+  const cells=[];
+  for(let c=0;c<cols;c++)for(let r=0;r<rows;r++){
+    if(c===0||c===cols-1||r===0||r===rows-1)cells.push({c,r});
+  }
+  for(let i=cells.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cells[i],cells[j]]=[cells[j],cells[i]];}
+  return{cells,cols,rows};
+}
+const{cells,cols,rows}=perimeterSlots(WORDS.length);
+const cellW=100/cols,cellH=100/rows;
+
+WORDS.forEach((w,i)=>{
+  const slot=cells[i];
+  const cx=slot.c*cellW+cellW/2+(Math.random()-.5)*cellW*0.4;
+  const cy=slot.r*cellH+cellH/2+(Math.random()-.5)*cellH*0.4;
+  const rot=(Math.random()-.5)*20;
+
+  const el=document.createElement('div');
+  el.className='sc';
+  el.style.cssText=`left:${cx}%;top:${cy}%;--rot:${rot}deg`;
+  el.textContent=w;
+  stormEl.appendChild(el);
+  sCards.push(el);
+
+  const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+  line.setAttribute('x1',cx);line.setAttribute('y1',cy);
+  line.setAttribute('x2',50);line.setAttribute('y2',50);
+  line.setAttribute('class','storm-line');
+  linesEl.appendChild(line);
+  sLines.push(line);
+});
+
+/* AI NETWORK BG — S17 closing logo, signals "powered by AI" */
+let aiBgAF=null;
+const aiNodes=[];
+function initAiNodes(W,H){
+  aiNodes.length=0;
+  for(let i=0;i<26;i++){
+    aiNodes.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25});
+  }
+}
+function drawAiBg(){
+  const cv=document.getElementById('ai-bg-cv');
+  if(!cv||!document.getElementById('s17').classList.contains('active')){aiBgAF=null;return;}
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;initAiNodes(W,H);}
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  aiNodes.forEach(n=>{
+    n.x+=n.vx;n.y+=n.vy;
+    if(n.x<0)n.x=W;if(n.x>W)n.x=0;
+    if(n.y<0)n.y=H;if(n.y>H)n.y=0;
+  });
+  for(let i=0;i<aiNodes.length;i++){
+    for(let j=i+1;j<aiNodes.length;j++){
+      const a=aiNodes[i],b=aiNodes[j];
+      const dx=a.x-b.x,dy=a.y-b.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<140){
+        const op=(1-dist/140)*.32;
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+        ctx.strokeStyle=`rgba(218,93,55,${op})`;ctx.lineWidth=1;ctx.stroke();
+      }
+    }
+    ctx.beginPath();ctx.arc(aiNodes[i].x,aiNodes[i].y,1.8,0,Math.PI*2);
+    ctx.fillStyle='rgba(218,93,55,.5)';ctx.fill();
+  }
+  aiBgAF=requestAnimationFrame(drawAiBg);
+}
+
+/* TYPING */
+function type(el,text,speed=36){
+  return new Promise(r=>{let i=0;el.textContent='';const t=setInterval(()=>{el.textContent=text.slice(0,++i);if(i>=text.length){clearInterval(t);r();}},speed);});
+}
+
+/* ENTER */
+function enter(id){
+  const el=document.getElementById(id);if(!el)return;
+  setTimeout(()=>el.querySelectorAll('.sup').forEach(e=>e.classList.add('in')),80);
+  setTimeout(()=>el.querySelectorAll('.fin').forEach(e=>e.classList.add('in')),100);
+
+  /* ctx-label fade in for all "b" mockup frames */
+  const ctxEl=document.getElementById('ctx'+id.replace('s',''));
+  if(ctxEl) setTimeout(()=>ctxEl.style.opacity='1',200);
+
+  /* CONCEPT LABEL morph — one persistent element, big/centered on its title scene,
+     shrinks to the top label spot on its mockup scene(s) without ever fading out,
+     hidden everywhere else. Text changes per concept group. */
+  const ikMorph=document.getElementById('ik-morph');
+  const BIG_SCENES={s6:'It knows',s8:'It thinks',s9:'It acts'};
+  const SMALL_SCENES={s6b:'It knows',s7b:'It knows',s11b:'It knows',s8b:'It thinks',s9b:'It acts',s10b:'It acts',s12:'It acts'};
+  if(BIG_SCENES[id]){
+    ikMorph.textContent=BIG_SCENES[id];
+    ikMorph.style.opacity='1';
+    ikMorph.style.top='50%';
+    ikMorph.style.fontSize='var(--fs-h)';
+    ikMorph.style.transform='translate(-50%,-50%)';
+  }else if(SMALL_SCENES[id]){
+    ikMorph.textContent=SMALL_SCENES[id];
+    ikMorph.style.opacity='1';
+    ikMorph.style.top='3.5vw';
+    ikMorph.style.fontSize='var(--fs-e)';
+    ikMorph.style.transform='translate(-50%,0)';
+  }else{
+    ikMorph.style.opacity='0';
+  }
+
+  if(id==='s2'){
+    sCards.forEach((c,i)=>setTimeout(()=>c.classList.add('on'),150+i*110));
+    sLines.forEach((l,i)=>setTimeout(()=>l.classList.add('show'),150+i*110));
+  }
+  if(id==='s4'){
+    setTimeout(()=>document.getElementById('sweep').classList.add('go'),1000);
+  }
+  if(id==='s5'){
+    setTimeout(()=>{document.querySelector('.ja-l').classList.add('in');document.querySelector('.ja-r').classList.add('in');},260);
+  }
+  if(id==='s6b'){
+    setTimeout(async()=>{
+      await type(document.getElementById('tt6'),'Status of order SO-1023, dispatch and payment?',55);
+      setTimeout(()=>document.getElementById('rc6').classList.add('show'),1500);
+    },400);
+  }
+  if(id==='s7b'){
+    setTimeout(async()=>{
+      await type(document.getElementById('tt7'),'Trace the batch details of Tata steel',55);
+      setTimeout(()=>{
+        document.getElementById('rc7').classList.add('show');
+        ['tn0','tn1','tn2','tn3','tn4'].forEach((n,i)=>setTimeout(()=>{const e=document.getElementById(n);if(e)e.classList.add('lit');},i*220));
+      },1500);
+    },400);
+  }
+  if(id==='s8b'){
+    setTimeout(async()=>{
+      await type(document.getElementById('tt8'),'List all the pending approvals',55);
+      setTimeout(()=>{
+        document.getElementById('rc8').classList.add('show');
+        ['ap1','ap2','ap3'].forEach((a,i)=>setTimeout(()=>document.getElementById(a).classList.add('show'),i*220));
+      },1500);
+    },400);
+  }
+  if(id==='s9b'){
+    setTimeout(async()=>{
+      await type(document.getElementById('tt9'),'Create task for Abhishek, create PO for Surya Supplier by tomorrow',28);
+      setTimeout(()=>{
+        document.getElementById('rc9').classList.add('show');
+        setTimeout(()=>document.getElementById('nb9').classList.add('show'),700);
+      },1500);
+    },400);
+  }
+  if(id==='s10b'){
+    setTimeout(()=>{
+      document.getElementById('imgchip').classList.add('show');
+      document.querySelector('#s10b .file-name').classList.add('show');
+      document.getElementById('upbar').classList.add('show');
+      setTimeout(()=>document.getElementById('upfill').style.width='100%',150);
+      setTimeout(async()=>{
+        await type(document.getElementById('tt10'),'Create inward from this image',55);
+        setTimeout(()=>document.getElementById('rc10').classList.add('show'),1500);
+      },1800);
+    },400);
+  }
+  if(id==='s11b'){
+    setTimeout(async()=>{
+      await type(document.getElementById('tt11'),'Stock details of MS rods',55);
+      setTimeout(()=>{
+        document.getElementById('rc11').classList.add('show');
+        setTimeout(()=>document.getElementById('slb').classList.add('show'),300);
+        ['wh1','wh2','wh3'].forEach((w,i)=>setTimeout(()=>{const e=document.getElementById(w);if(e)e.classList.add('show');},300+i*250));
+        setTimeout(()=>['wb1','wb2','wb3'].forEach(b=>{const e=document.getElementById(b);if(e)e.style.width=e.dataset.w+'%';}),400);
+      },1500);
+    },400);
+  }
+  if(id==='s12'){
+    setTimeout(async()=>{
+      await type(document.getElementById('tt12r'),'₹3L received, reconcile',55);
+      setTimeout(()=>document.getElementById('rc12r').classList.add('show'),1500);
+    },400);
+  }
+  if(id==='s17'){
+    setTimeout(()=>{document.getElementById('lw').classList.add('show');document.getElementById('ltag').classList.add('show');},350);
+    drawAiBg();
+  }
+}
+
+/* LEAVE */
+function leave(id){
+  const el=document.getElementById(id);if(!el)return;
+  el.querySelectorAll('.sup').forEach(e=>e.classList.remove('in'));
+  el.querySelectorAll('.fin').forEach(e=>e.classList.remove('in'));
+  /* reset ctx-label */
+  const ctxEl=document.getElementById('ctx'+id.replace('s',''));
+  if(ctxEl) ctxEl.style.opacity='0';
+  if(id==='s2'){sCards.forEach(c=>c.classList.remove('on'));sLines.forEach(l=>l.classList.remove('show'));}
+  if(id==='s4')document.getElementById('sweep').classList.remove('go');
+  if(id==='s5'){document.querySelector('.ja-l').classList.remove('in');document.querySelector('.ja-r').classList.remove('in');}
+  if(id==='s6b'){document.getElementById('rc6').classList.remove('show');document.getElementById('tt6').textContent='';}
+  if(id==='s7b'){document.getElementById('rc7').classList.remove('show');document.getElementById('tt7').textContent='';['tn0','tn1','tn2','tn3','tn4'].forEach(n=>{const e=document.getElementById(n);if(e)e.classList.remove('lit');});}
+  if(id==='s8b'){document.getElementById('rc8').classList.remove('show');document.getElementById('tt8').textContent='';['ap1','ap2','ap3'].forEach(a=>{const e=document.getElementById(a);if(e)e.classList.remove('show');});}
+  if(id==='s9b'){document.getElementById('rc9').classList.remove('show');document.getElementById('tt9').textContent='';const nb9=document.getElementById('nb9');if(nb9)nb9.classList.remove('show');}
+  if(id==='s10b'){document.getElementById('rc10').classList.remove('show');document.getElementById('tt10').textContent='';document.getElementById('imgchip').classList.remove('show');document.querySelector('#s10b .file-name').classList.remove('show');document.getElementById('upbar').classList.remove('show');document.getElementById('upfill').style.width='0';}
+  if(id==='s11b'){document.getElementById('rc11').classList.remove('show');document.getElementById('tt11').textContent='';document.getElementById('slb').classList.remove('show');['wh1','wh2','wh3'].forEach(w=>{const e=document.getElementById(w);if(e)e.classList.remove('show');});['wb1','wb2','wb3'].forEach(b=>{const e=document.getElementById(b);if(e)e.style.width='0';});}
+  if(id==='s12'){document.getElementById('rc12r').classList.remove('show');document.getElementById('tt12r').textContent='';}
+  if(id==='s17'){const lw=document.getElementById('lw');if(lw)lw.classList.remove('show');const lt=document.getElementById('ltag');if(lt)lt.classList.remove('show');if(aiBgAF){cancelAnimationFrame(aiBgAF);aiBgAF=null;}}
+}
+
+/* MAIN LOOP */
+let paused=false;
+
+function updateCounter(){
+  const el=document.getElementById('scene-counter');
+  if(el) el.textContent=(cur+1)+' / '+SCENES.length;
+}
+
+function jumpTo(i){
+  leave(SCENES[cur].id);
+  document.getElementById(SCENES[cur].id).classList.remove('active');
+  cur=i;
+  /* set elapsed to start of this scene */
+  let acc=0;
+  for(let j=0;j<cur;j++) acc+=SCENES[j].dur;
+  elapsed=acc;
+  document.getElementById(SCENES[cur].id).classList.add('active');
+  enter(SCENES[cur].id);
+  last=null;
+  updateCounter();
+}
+
+function tick(now){
+  if(last===null) last=now;
+  const dt=now-last; last=now;
+  if(!paused){
+    elapsed+=dt;
+    progressEl.style.width=Math.min(elapsed/TOTAL*100,100)+'%';
+    let acc=0;
+    for(let i=0;i<SCENES.length;i++){
+      acc+=SCENES[i].dur;
+      if(elapsed<=acc){
+        if(cur!==i){
+          const prevId=SCENES[cur].id;
+          leave(prevId);
+          document.getElementById(prevId).classList.remove('active');
+          cur=i;
+          const nextEl=document.getElementById(SCENES[cur].id);
+          nextEl.classList.add('active');
+          enter(SCENES[cur].id);
+          updateCounter();
+        }
+        break;
+      }
+    }
+    if(elapsed>=TOTAL){
+      elapsed=0;
+      leave(SCENES[cur].id);
+      document.getElementById(SCENES[cur].id).classList.remove('active');
+      cur=0;
+      document.getElementById(SCENES[0].id).classList.add('active');
+      enter(SCENES[0].id);
+      updateCounter();
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+/* CONTROLS */
+document.getElementById('btn-play').addEventListener('click',()=>{
+  paused=!paused;
+  last=null;
+  document.getElementById('icon-pause').style.display=paused?'none':'block';
+  document.getElementById('icon-play').style.display=paused?'block':'none';
+  document.getElementById('btn-play').setAttribute('aria-label',paused?'Play':'Pause');
+});
+document.getElementById('btn-prev').addEventListener('click',()=>{
+  jumpTo(cur===0 ? SCENES.length-1 : cur-1);
+});
+document.getElementById('btn-next').addEventListener('click',()=>{
+  jumpTo(cur===SCENES.length-1 ? 0 : cur+1);
+});
+
+enter(SCENES[0].id);
+document.getElementById(SCENES[0].id).classList.add('active');
+updateCounter();
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
