@@ -19,6 +19,9 @@ Canonical source of truth for anything not covered here: `Launch video/Design.md
 tokens) and the working example `Launch video/V2/tranzact_launch_video.html` (most fully-
 featured real deck built with this system — read it for precedent before inventing anything new).
 
+New to this skill or on a fresh machine? See `SETUP.md` first (Node deps, ffmpeg, Playwright
+browser install, and where to get the music library) — the steps below assume that's done.
+
 ---
 
 ## Step 0 — Gather requirements
