@@ -1,5 +1,5 @@
 /**
- * Records a "scene-deck" style animated HTML file (see .claude/skills/scene-deck-video/)
+ * Records a "scene-deck" style animated HTML file (see .claude/skills/tz-scene-deck/)
  * in real time via Playwright — these decks are built on real-time timers
  * (setTimeout/requestAnimationFrame), not a seekable API, so we capture playback
  * as-is rather than using render-html.ts's frame-by-frame seek approach — then
