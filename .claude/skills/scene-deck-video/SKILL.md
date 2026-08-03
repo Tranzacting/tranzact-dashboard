@@ -6,7 +6,7 @@ description: Builds and renders dark-canvas, scene-based animated HTML product-d
 # Scene-Deck Video — TranZact launch/demo videos
 
 Produces the dark-canvas, orange-accent, chat-mockup style animated video used for
-`Launch video/tranzact_launch_video.html` — a single HTML file that autoplays through a
+`Launch video/V2/tranzact_launch_video.html` — a single HTML file that autoplays through a
 sequence of full-screen "scenes" (statement beats + "type a question → AI responds" concept
 demos), previewed live in a browser, then recorded to MP4 with music.
 
@@ -16,7 +16,7 @@ brand is dark `#0E0F0C` canvas + orange `#DA5D37` accent, single 16:9 format, va
 HTML/CSS/JS with no `useCanvas()`/responsive-format system.
 
 Canonical source of truth for anything not covered here: `Launch video/Design.md` (brand
-tokens) and the working example `Launch video/tranzact_launch_video.html` (most fully-
+tokens) and the working example `Launch video/V2/tranzact_launch_video.html` (most fully-
 featured real deck built with this system — read it for precedent before inventing anything new).
 
 ---
@@ -132,7 +132,9 @@ capture approach buys back.
 ### Music
 
 Library: `Ads/remotion/public/audio/` (see `TRACKS.md` there for the full mood list — same
-library `/ad-video` draws from). Pick to match the **emotional arc**, not the literal topic:
+library `/ad-video` draws from). This folder is excluded from git (large-asset policy) — if
+it's not present locally, ask Koushik or #marketing for the current audio folder before
+rendering. Pick to match the **emotional arc**, not the literal topic:
 - Problem → resolution narratives (most launch videos): `epic-blockbuster.mp3` (dramatic
   cinematic build) or `patron-saint-of-heists.mp3` (slick, confident, modern)
 - Tech/AI-forward product showcase: `chronos.mp3` (electronic, pulsing)
