@@ -7,11 +7,40 @@
 .env.*
 !.env.example
 
-# Large asset directories
+# Large asset directories — raw creative/production files, not part of the
+# dashboard/api. Not needed on git or Vercel; see .vercelignore too.
 Ads/
+ADS 2/
+Ads2/
 Webinar/
 Hubspot/
+Hubspot backup code.pdf
 Audience/
 campaigns/
+Video/
+Canva/
+Social/
+Upskill/
 node_modules/
 .DS_Store
+
+# OpenMontage — separate tool, has its own git repo
+OpenMontage/
+
+# Launch video — keep the design docs (Design.md, alpha.md, V2/*.html/.md),
+# ignore raw video/image/audio drops
+Launch video/*.mp4
+Launch video/*.mov
+Launch video/*.wav
+Launch video/*.png
+Launch video/Raw Factory images/
+Launch video/processed_images/
+Launch video/voice_model/
+Launch video/sfx/
+Launch video/V2/*.mp4
+Launch video/V2/V4/
+Launch video/_record_tmp_*/
+
+# Personal/financial documents — must never be committed (this repo is public)
+Invoices/
+*.zip
