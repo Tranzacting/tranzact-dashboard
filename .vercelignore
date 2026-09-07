@@ -6,6 +6,7 @@ campaigns/
 .git/
 node_modules/
 dashboard/node_modules/
+Optimize/node_modules/
 *.mp4
 *.mov
 .DS_Store
@@ -13,3 +14,20 @@ cover.png
 build-canva-deck.js
 canva-automation.js
 .netlify/
+dashboard/dist/
+Launch video/
+OpenMontage/
+Video/
+Ads2/
+ADS 2/
+Invoices/
+Cover/
+Canva/
+Social/
+Upskill/
+*.zip
+*.m4a
+*.mp3
+*.docx
+*.pdf
+*.xlsx
