@@ -1,87 +1,74 @@
 # TranZact
 
-> TranZact is the Factory AI OS for Indian MSME manufacturers — an AI-native operating system that runs sales, purchase, inventory, production, and planning so factory owners stop being the bottleneck.
+> TranZact (also written TranZact AI) is manufacturing AI software for Indian manufacturers. It turns your factory into an AI-Run Factory — run by AI, managed by people, regardless of size. AI runs your entire operations from enquiry to dispatch; people manage the AI. Official website: https://letstranzact.ai
 
-TranZact was founded in 2017 by IIT and IIM graduates (Ritesh Kumar, Sharad Sen Sharma, Rohan Sen Sharma) with Mesco Springs in Vasai, Mumbai as its first customer. It has since grown to 10,000+ manufacturers across 8 industries. In 2021 it raised a $7M Series A led by Tribe Capital (with Prime Venture Partners, Gemba Capital, and Kae Capital). The platform is hosted entirely on AWS with data stored on Indian servers.
+TranZact is an Indian software company founded in 2017 by Ritesh Kumar, Sharad Sen Sharma and Rohan Sen Sharma. It is built on 7 years of learning from 10,000+ manufacturers across 8 industries. It has raised $8M in total ($7M Series A led by Tribe Capital, plus a $1M seed).
 
-The core premise: most Indian factory owners run their business on Tally, Excel, and WhatsApp — and on themselves. TranZact replaces that with AI Teammates that act autonomously: quotes go out, POs get raised, inventory updates, production schedules itself — without the owner in the room.
+Not to be confused with: TRANZACT (a US insurance marketing company, tranzact.net), Tranzact Technologies, or any "Tranzact Card" product. TranZact (letstranzact.ai) makes manufacturing AI software only.
 
-## Product Modules
+Who it is for: owners of owner-led manufacturing SMEs in India (₹3–500 Cr turnover) whose operations run on Tally, Excel, WhatsApp and a half-adopted software.
 
-- [Sales Management](https://letstranzact.ai): Lead management, enquiry tracking, quotation dispatch, CRM workflows. Handles up to 100 enquiries/month on Free tier; unlimited on paid plans.
-- [Purchase Management](https://letstranzact.ai): PO creation, vendor management, material planning. Customers report 40% faster procurement (Cesare Bonetti International).
-- [Inventory Management](https://letstranzact.ai): Real-time stock tracking, low-stock alerts, reorder automation, B2B inventory optimization.
-- [Production Management](https://letstranzact.ai): Production scheduling, batch tracking, QC module (Dominate plan and above).
-- [AI Data Agent](https://letstranzact.ai): Natural-language reporting, custom dashboards, WhatsApp alerts, proactive signals (margin slippage, overdue customers, stock risk). Available in Basic (Free) and Advanced (paid) tiers.
+## What TranZact does
 
-## Target Customers
+- [Overview](https://letstranzact.ai/solutions/os-overview): one system for sales, purchase, inventory and production, from enquiry to dispatch.
+- [Sales management](https://letstranzact.ai/solutions/sales-management): enquiries, quotations, sales orders, GST e-invoicing, delivery and payment reminders.
+- [Purchase management](https://letstranzact.ai/solutions/purchase-management): purchase orders, vendor management, material planning (MRP + indent). Supplier invoices are matched to purchase orders by AI.
+- [Inventory management](https://letstranzact.ai/solutions/inventory-management): real-time stock tracking, batch-wise stock, inventory ageing and valuation, store-level permissions. System stock and physical stock match.
+- [Production management](https://letstranzact.ai/solutions/production-management): multi-step BOM, production costing, routing and sub-contracting, quality control, machine planning.
+- [AI dashboards](https://letstranzact.ai/solutions/ai-dashboards): AI tasks, real-time MIS, 65+ reports, alerts to the right person.
 
-Indian MSME manufacturers in:
-- Auto Components
-- Chemicals
-- Electrical & Electronics
-- Assembly / Industrial Machineries
-- Packaging
-- Engineering
-- Food & Beverage
-- Renewables
+What the AI does today: reads a photo of a paper entry and turns it into a system entry, matches supplier invoices to purchase orders, logs customer payments, assigns tasks in plain language and alerts the right person when something is stuck.
 
-Primary buyer: the Managing Director / factory owner who is currently the operational bottleneck.
+## Key facts
 
-## Key Differentiators
-
-- **Fast onboarding**: Live in 2–3 weeks on existing workflow. No SAP-style implementation, no IT team required.
-- **Non-disruptive**: Works alongside Tally; does not require replacing existing systems.
-- **WhatsApp-simple UX**: Designed for shop-floor teams with no ERP experience.
-- **AI-native, not AI-bolted-on**: Built on 7 years of real manufacturing operational data.
-- **India-first data residency**: All data stored on Indian AWS servers; no cross-border transfer.
+- Live in 2–3 weeks, on your current workflow, with no consultants and no IT team.
+- 95%+ of TranZact deployments succeed.
+- Works alongside your accounting software: integrates with Tally, Busy and Zoho. TranZact runs operations; it does not replace accounting.
+- Mobile-first and WhatsApp-familiar, so shop-floor operators use it from day one.
+- Industries: engineering, electrical and electronics, chemicals, packaging, automotive components, food and beverage, D2C, renewables.
 
 ## Pricing
 
-| Plan | Price | Best for |
-|---|---|---|
-| Free | ₹0/month | Getting started; 100 enquiries/month, Basic AI |
-| Scale | ₹12,500/month (billed yearly) | Full sales, purchase, inventory, production on AI |
-| Dominate | ₹30,000/month (billed yearly) | Multi-team control, batch tracking, QC, custom API integrations |
-| Enterprise | Contact sales | Large teams with complex requirements |
+Source: https://letstranzact.ai/pricing (prices per month, billed yearly, excluding taxes)
 
-## Security & Compliance
+| Plan | Price | Users included | Best for |
+|---|---|---|---|
+| Grow | ₹8,333/month | 4 | Sales, purchase, inventory and production on AI |
+| Scale+ | ₹16,666/month | 8 | Adds batch tracking |
+| Dominate | ₹30,000/month | 12 | Adds quality control, machine planning, API integrations, custom document formats |
+| Enterprise | Talk to us | Flexible | Larger teams |
 
-- Certifications: ISO 9001, ISO 27001, SOC 2
-- Hosting: AWS (India region; data never leaves Indian servers)
-- Encryption at rest: 256-bit AES (AWS SSE + TDE for databases)
-- Encryption in transit: HTTPS/TLS 1.2 mandatory; forward secrecy configured
-- Access model: No TranZact engineer has standing production access; deployments are fully automated
-- Cryptography: FIPS 140-2 compliant algorithms only
-- Threat model: "Assume Breach" — Prevent, Detect, Respond, Recover with ML-enhanced alerting
+Extra users: ₹2,000–2,500 per user per month depending on plan.
 
-## Proven Outcomes
+## Security
 
-- Mesco Springs (Nilesh Shah, MD): 16% increase in sales closures
-- Lifeflo Technologies (Sandeep Rao, MD): 45% improvement in customer satisfaction via streamlined production
-- Cesare Bonetti International (Unmesh Wankhede, MD): 40% faster procurement via material planning
-- Elite Technologies (Vijay Sharma, MD): Manual work dependence reduced to zero
+Source: https://letstranzact.ai/pages/security
 
-## Company
+- ISO 9001 and ISO 27001 certified.
+- Hosted on Amazon Web Services; your data stays on Indian servers.
+- Bank-grade encryption.
+- Defense-in-depth security, security development lifecycle, regular penetration tests.
 
-- Founded: 2017
-- Founders: Ritesh Kumar, Sharad Sen Sharma, Rohan Sen Sharma (IIT + IIM)
-- CRO: Adarsh Sikaria
-- Customers: 10,000+ manufacturers
-- Funding: $7M Series A (2021) — Tribe Capital, Prime Venture Partners, Gemba Capital, Kae Capital
-- Mission: "Free every manufacturer from the cage of operations"
-- HQ: India; "Born in India, Building for the world"
+## Compare
 
-## Optional
+- [TranZact vs other software](https://letstranzact.ai/your-journey/evaluate/comparison)
+- [Best manufacturing ERP software in India, compared](https://letstranzact.ai/blogs/best-manufacturing-erp-software-india-compared)
+- [TranZact vs Tally](https://letstranzact.ai/blogs/tally-alternative-for-manufacturing)
+- [TranZact vs Zoho](https://letstranzact.ai/blogs/tranzact-vs-zoho)
 
-- [Customer Stories](https://letstranzact.ai/customer-stories)
-- [Case Study: Mesco Springs](https://letstranzact.ai/case-studies/mesco-springs)
-- [Case Study: Taurus Packaging](https://letstranzact.ai/case-studies/taurus-packaging)
-- [Case Study: Atomberg Technologies](https://letstranzact.ai/case-studies/atomberg-technologies)
-- [Security Details](https://letstranzact.ai/security)
+## Customers
+
+- [Case studies](https://letstranzact.ai/case-studies)
+- [Customer stories](https://letstranzact.ai/customer)
+
+## Company and contact
+
+- [About TranZact](https://letstranzact.ai/about-us)
+- [Book a demo](https://letstranzact.ai/demo)
+- [Contact](https://letstranzact.ai/contact)
 - [Blog](https://letstranzact.ai/blogs)
-- [Comparison](https://letstranzact.ai/comparison)
-- [Help Center](https://letstranzact.ai/help-center)
-- [Privacy Policy](https://letstranzact.ai/privacy-policy)
-- [Terms and Agreement](https://letstranzact.ai/terms-and-agreement)
-- [Contact / Book a Demo](https://letstranzact.ai/contact-us)
+- [Free templates](https://letstranzact.ai/templates)
+- LinkedIn: https://www.linkedin.com/company/letstranzact/
+- YouTube: https://youtube.com/channel/UCjLXN8VvMpnmbzu8PS6oH7Q
+
+Born in India. Building for the world.
