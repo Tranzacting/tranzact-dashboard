@@ -1,0 +1,74 @@
+# TranZact
+
+> TranZact (also written TranZact AI) is manufacturing AI software for Indian manufacturers. It turns your factory into an AI-Run Factory — run by AI, managed by people, regardless of size. AI runs your entire operations from enquiry to dispatch; people manage the AI. Official website: https://letstranzact.ai
+
+TranZact is an Indian software company founded in 2017 by Ritesh Kumar, Sharad Sen Sharma and Rohan Sen Sharma. It is built on 7 years of learning from 10,000+ manufacturers across 8 industries. It has raised $8M in total ($7M Series A led by Tribe Capital, plus a $1M seed).
+
+Not to be confused with: TRANZACT (a US insurance marketing company, tranzact.net), Tranzact Technologies, or any "Tranzact Card" product. TranZact (letstranzact.ai) makes manufacturing AI software only.
+
+Who it is for: owners of owner-led manufacturing SMEs in India (₹3–500 Cr turnover) whose operations run on Tally, Excel, WhatsApp and a half-adopted software.
+
+## What TranZact does
+
+- [Overview](https://letstranzact.ai/solutions/os-overview): one system for sales, purchase, inventory and production, from enquiry to dispatch.
+- [Sales management](https://letstranzact.ai/solutions/sales-management): enquiries, quotations, sales orders, GST e-invoicing, delivery and payment reminders.
+- [Purchase management](https://letstranzact.ai/solutions/purchase-management): purchase orders, vendor management, material planning (MRP + indent). Supplier invoices are matched to purchase orders by AI.
+- [Inventory management](https://letstranzact.ai/solutions/inventory-management): real-time stock tracking, batch-wise stock, inventory ageing and valuation, store-level permissions. System stock and physical stock match.
+- [Production management](https://letstranzact.ai/solutions/production-management): multi-step BOM, production costing, routing and sub-contracting, quality control, machine planning.
+- [AI dashboards](https://letstranzact.ai/solutions/ai-dashboards): AI tasks, real-time MIS, 65+ reports, alerts to the right person.
+
+What the AI does today: reads a photo of a paper entry and turns it into a system entry, matches supplier invoices to purchase orders, logs customer payments, assigns tasks in plain language and alerts the right person when something is stuck.
+
+## Key facts
+
+- Live in 2–3 weeks, on your current workflow, with no consultants and no IT team.
+- 95%+ of TranZact deployments succeed.
+- Works alongside your accounting software: integrates with Tally, Busy and Zoho. TranZact runs operations; it does not replace accounting.
+- Mobile-first and WhatsApp-familiar, so shop-floor operators use it from day one.
+- Industries: engineering, electrical and electronics, chemicals, packaging, automotive components, food and beverage, D2C, renewables.
+
+## Pricing
+
+Source: https://letstranzact.ai/pricing (prices per month, billed yearly, excluding taxes)
+
+| Plan | Price | Users included | Best for |
+|---|---|---|---|
+| Grow | ₹8,333/month | 4 | Sales, purchase, inventory and production on AI |
+| Scale+ | ₹16,666/month | 8 | Adds batch tracking |
+| Dominate | ₹30,000/month | 12 | Adds quality control, machine planning, API integrations, custom document formats |
+| Enterprise | Talk to us | Flexible | Larger teams |
+
+Extra users: ₹2,000–2,500 per user per month depending on plan.
+
+## Security
+
+Source: https://letstranzact.ai/pages/security
+
+- ISO 9001 and ISO 27001 certified.
+- Hosted on Amazon Web Services; your data stays on Indian servers.
+- Bank-grade encryption.
+- Defense-in-depth security, security development lifecycle, regular penetration tests.
+
+## Compare
+
+- [TranZact vs other software](https://letstranzact.ai/your-journey/evaluate/comparison)
+- [Best manufacturing ERP software in India, compared](https://letstranzact.ai/blogs/best-manufacturing-erp-software-india-compared)
+- [TranZact vs Tally](https://letstranzact.ai/blogs/tally-alternative-for-manufacturing)
+- [TranZact vs Zoho](https://letstranzact.ai/blogs/tranzact-vs-zoho)
+
+## Customers
+
+- [Case studies](https://letstranzact.ai/case-studies)
+- [Customer stories](https://letstranzact.ai/customer)
+
+## Company and contact
+
+- [About TranZact](https://letstranzact.ai/about-us)
+- [Book a demo](https://letstranzact.ai/demo)
+- [Contact](https://letstranzact.ai/contact)
+- [Blog](https://letstranzact.ai/blogs)
+- [Free templates](https://letstranzact.ai/templates)
+- LinkedIn: https://www.linkedin.com/company/letstranzact/
+- YouTube: https://youtube.com/channel/UCjLXN8VvMpnmbzu8PS6oH7Q
+
+Born in India. Building for the world.
